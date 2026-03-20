@@ -1,112 +1,143 @@
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, MapPin, Users, Euro, Tag, CheckCircle2 } from "lucide-react";
-import type { Event, AppRole } from "@/lib/supabase-helpers";
+import { CalendarDays, MapPin, Users, Heart } from "lucide-react";
+import type { Event, AppRole, Profile } from "@/lib/supabase-helpers";
+import { calculateMatchScore } from "@/lib/supabase-helpers";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useState } from "react";
 
 interface EventCardProps {
   event: Event;
   userRole: AppRole;
+  sponsorProfile?: Profile | null;
+  organizer?: Pick<Profile, "name" | "avatar_url"> | null;
 }
 
-const typeColors: Record<string, string> = {
-  conferencia: "bg-blue-100 text-blue-700",
-  festival: "bg-purple-100 text-purple-700",
-  feria: "bg-amber-100 text-amber-700",
-  congreso: "bg-emerald-100 text-emerald-700",
-  taller: "bg-rose-100 text-rose-700",
-  seminario: "bg-cyan-100 text-cyan-700",
-};
-
-function getTypeBadgeClass(type: string) {
-  const key = type.toLowerCase();
-  return typeColors[key] || "bg-muted text-foreground";
-}
-
-export function EventCard({ event }: EventCardProps) {
+export function EventCard({ event, sponsorProfile, organizer }: EventCardProps) {
   const navigate = useNavigate();
-  const confirmedCount = event.confirmed_sponsors?.length || 0;
+  const [liked, setLiked] = useState(false);
+
+  const matchScore = sponsorProfile ? calculateMatchScore(event, sponsorProfile) : null;
+  const isStrongMatch = matchScore !== null && matchScore >= 80;
 
   return (
     <div
       onClick={() => navigate(`/events/${event.id}`)}
-      className="bg-card rounded-xl shadow-card overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 group flex flex-col cursor-pointer"
+      className="bg-card rounded-2xl shadow-card overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 group flex flex-col cursor-pointer"
     >
       {/* Cover image */}
-      <div className="h-44 relative overflow-hidden">
+      <div className="aspect-[4/3] relative overflow-hidden">
         {event.media && event.media.length > 0 ? (
-          <img src={event.media[0]} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img
+            src={event.media[0]}
+            alt={event.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
         ) : (
           <div className="w-full h-full gradient-primary opacity-80 group-hover:opacity-100 transition-opacity" />
         )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-10">
-          <h3 className="font-bold text-white text-lg leading-tight line-clamp-2 drop-shadow-sm" style={{ textWrap: "balance" as any }}>
-            {event.title}
-          </h3>
-        </div>
+
+        {/* Top-left: Match badges */}
+        {matchScore !== null && (
+          <div className="absolute top-3 left-3 flex items-center gap-2">
+            <span className="px-2.5 py-1 rounded-lg bg-foreground/70 backdrop-blur-sm text-white text-xs font-bold tabular-nums">
+              {matchScore}% Match
+            </span>
+            {isStrongMatch && (
+              <span className="px-2.5 py-1 rounded-lg bg-emerald-500 text-white text-xs font-bold">
+                Perfect Fit
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Top-right: Heart */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setLiked(!liked);
+          }}
+          className={`absolute top-3 right-3 h-9 w-9 rounded-full flex items-center justify-center transition-colors ${
+            liked
+              ? "bg-destructive text-white"
+              : "bg-foreground/30 backdrop-blur-sm text-white hover:bg-foreground/50"
+          }`}
+        >
+          <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+        </button>
+
+        {/* Bottom-left: Type badge */}
+        {event.type && (
+          <span className="absolute bottom-3 left-3 px-3 py-1 rounded-lg bg-card/90 backdrop-blur-sm text-foreground text-xs font-semibold">
+            {event.type}
+          </span>
+        )}
+
+        {/* Draft badge */}
         {!event.published && (
-          <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-pill bg-foreground/70 text-white text-xs font-medium">
+          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-foreground/70 text-white text-xs font-medium">
             Borrador
           </span>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-4 flex flex-col flex-1 space-y-3">
-        {event.type && (
-          <span className={`self-start inline-flex items-center px-2.5 py-0.5 rounded-pill text-xs font-semibold ${getTypeBadgeClass(event.type)}`}>
-            {event.type}
-          </span>
-        )}
+      <div className="p-4 flex flex-col flex-1 gap-3">
+        <h3 className="font-bold text-foreground text-lg leading-tight line-clamp-2">
+          {event.title}
+        </h3>
 
-        <div className="space-y-1 text-sm text-muted-foreground">
+        {/* Date · Location · Capacity — single line */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
           {event.date && (
-            <div className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1">
               <CalendarDays className="h-3.5 w-3.5 shrink-0" />
-              <span>
-                {format(new Date(event.date), "d MMM yyyy", { locale: es })}
-                {event.location ? ` · ${event.location}` : ""}
-              </span>
-            </div>
+              {format(new Date(event.date), "d MMM yyyy", { locale: es })}
+            </span>
           )}
-          {!event.date && event.location && (
-            <div className="flex items-center gap-1.5">
+          {event.location && (
+            <span className="flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5 shrink-0" />
               <span className="line-clamp-1">{event.location}</span>
-            </div>
+            </span>
+          )}
+          {event.capacity != null && event.capacity > 0 && (
+            <span className="flex items-center gap-1">
+              <Users className="h-3.5 w-3.5 shrink-0" />
+              {event.capacity.toLocaleString()}
+            </span>
           )}
         </div>
 
-        {(event.capacity != null && event.capacity > 0) && (
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Users className="h-3.5 w-3.5 shrink-0" />
-            <span>
-              {event.capacity.toLocaleString()} asistentes
-              {event.audience ? ` · ${event.audience}` : ""}
+        {/* Price + Organizer row */}
+        <div className="flex items-center justify-between mt-auto pt-1">
+          {event.sponsorship_max != null && event.sponsorship_max > 0 ? (
+            <span className="text-base font-bold text-foreground">
+              €{event.sponsorship_max.toLocaleString()}
             </span>
-          </div>
-        )}
+          ) : (
+            <span />
+          )}
 
-        {event.sector && (
-          <div className="flex items-center gap-1.5 text-sm">
-            <Tag className="h-3.5 w-3.5 text-primary shrink-0" />
-            <span className="text-primary font-medium">{event.sector}</span>
-          </div>
-        )}
-
-        {event.sponsorship_min != null && event.sponsorship_max != null && event.sponsorship_max > 0 && (
-          <div className="flex items-center gap-1.5 text-sm font-semibold">
-            <Euro className="h-3.5 w-3.5 text-primary shrink-0" />
-            <span>€{event.sponsorship_min.toLocaleString()} – €{event.sponsorship_max.toLocaleString()}</span>
-          </div>
-        )}
-
-        {confirmedCount > 0 && (
-          <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
-            <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-            <span>{confirmedCount} sponsor{confirmedCount !== 1 ? "s" : ""} confirmado{confirmedCount !== 1 ? "s" : ""}</span>
-          </div>
-        )}
+          {organizer && (
+            <div className="flex items-center gap-2">
+              {organizer.avatar_url ? (
+                <img
+                  src={organizer.avatar_url}
+                  alt={organizer.name}
+                  className="h-7 w-7 rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-7 w-7 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground">
+                  {organizer.name?.charAt(0)?.toUpperCase()}
+                </div>
+              )}
+              <span className="text-sm text-muted-foreground line-clamp-1 max-w-[120px]">
+                {organizer.name}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
