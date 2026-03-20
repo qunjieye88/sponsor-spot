@@ -1,10 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, MapPin, Users, Heart } from "lucide-react";
+import { CalendarDays, MapPin, Users } from "lucide-react";
 import type { Event, AppRole, Profile } from "@/lib/supabase-helpers";
 import { calculateMatchScore } from "@/lib/supabase-helpers";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { useState } from "react";
 
 interface EventCardProps {
   event: Event;
