@@ -6,7 +6,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { MatchBadge } from "@/components/MatchBadge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ArrowLeft, Building2, DollarSign, Tag, MessageSquare, Globe, Briefcase, Zap } from "lucide-react";
+import { ArrowLeft, Building2, DollarSign, Tag, MessageSquare, Globe, Briefcase, Zap, CheckCircle2 } from "lucide-react";
 import type { Profile, Event } from "@/lib/supabase-helpers";
 import { calculateMatchScore } from "@/lib/supabase-helpers";
 
@@ -17,6 +17,8 @@ export default function SponsorDetailPage() {
   const [sponsor, setSponsor] = useState<Profile | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [existingConvs, setExistingConvs] = useState<Record<string, string>>({});
+  const [contactedEvents, setContactedEvents] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,7 +29,23 @@ export default function SponsorDetailPage() {
           : Promise.resolve({ data: [] as Event[], error: null }),
       ]);
       setSponsor(sponsorRes.data);
-      setEvents((eventsRes.data as Event[]) || []);
+      const evts = (eventsRes.data as Event[]) || [];
+      setEvents(evts);
+
+      // Check existing conversations for each event
+      if (profile && id && evts.length > 0) {
+        const { data: convs } = await supabase
+          .from("conversations")
+          .select("id, event_id")
+          .eq("organizer_id", profile.id)
+          .eq("sponsor_id", id);
+        if (convs) {
+          const map: Record<string, string> = {};
+          convs.forEach((c) => { map[c.event_id] = c.id; });
+          setExistingConvs(map);
+        }
+      }
+
       setLoading(false);
     };
     if (id) fetchData();
@@ -35,6 +53,16 @@ export default function SponsorDetailPage() {
 
   const startConversation = async (event: Event) => {
     if (!profile || !sponsor) return;
+
+    // If conversation already exists, navigate to it
+    if (existingConvs[event.id]) {
+      navigate(`/messages?conversation=${existingConvs[event.id]}`);
+      return;
+    }
+
+    // If already contacted in this session, navigate
+    if (contactedEvents.has(event.id)) return;
+
     const { data: existing } = await supabase
       .from("conversations")
       .select("id")
@@ -44,6 +72,7 @@ export default function SponsorDetailPage() {
       .maybeSingle();
 
     if (existing) {
+      setExistingConvs((prev) => ({ ...prev, [event.id]: existing.id }));
       navigate(`/messages?conversation=${existing.id}`);
       return;
     }
@@ -54,8 +83,13 @@ export default function SponsorDetailPage() {
       .select()
       .single();
 
-    if (error) toast.error(error.message);
-    else navigate(`/messages?conversation=${data.id}`);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setExistingConvs((prev) => ({ ...prev, [event.id]: data.id }));
+      setContactedEvents((prev) => new Set(prev).add(event.id));
+      navigate(`/messages?conversation=${data.id}`);
+    }
   };
 
   if (loading) {
@@ -182,19 +216,33 @@ export default function SponsorDetailPage() {
           {profile?.role === "organizer" && events.length > 0 && (
             <div className="space-y-2 pt-2">
               <h2 className="text-sm font-semibold text-muted-foreground">Contactar sobre evento</h2>
-              {events.map((event) => (
-                <button
-                  key={event.id}
-                  className="w-full flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-card hover:bg-accent/50 transition-colors text-sm"
-                  onClick={() => startConversation(event)}
-                >
-                  <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <span className="truncate">{event.title}</span>
-                  <div className="ml-auto shrink-0">
-                    <MatchBadge score={calculateMatchScore(event, sponsor)} size="xs" hideLabel />
-                  </div>
-                </button>
-              ))}
+              {events.map((event) => {
+                const hasConv = !!existingConvs[event.id];
+                return (
+                  <button
+                    key={event.id}
+                    className={`w-full flex items-center gap-2 px-4 py-2 rounded-full border transition-colors text-sm ${
+                      hasConv
+                        ? "border-primary/30 bg-primary/5 text-muted-foreground cursor-default"
+                        : "border-border bg-card hover:bg-accent/50"
+                    }`}
+                    onClick={() => startConversation(event)}
+                  >
+                    {hasConv ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                    ) : (
+                      <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <span className="truncate">{event.title}</span>
+                    {hasConv && (
+                      <span className="text-xs text-primary font-medium whitespace-nowrap">Contactado</span>
+                    )}
+                    <div className="ml-auto shrink-0">
+                      <MatchBadge score={calculateMatchScore(event, sponsor)} size="xs" hideLabel />
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

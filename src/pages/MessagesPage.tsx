@@ -310,15 +310,18 @@ export default function MessagesPage() {
               )}
 
               {/* Match score */}
-              {activeConversation.event && activeConversation.otherUser && (
-                <div className="flex flex-col items-center">
-                  <p className="text-xs text-muted-foreground mb-2">Match Score</p>
-                  <MatchBadge
-                    score={calculateMatchScore(activeConversation.event, activeConversation.otherUser)}
-                    size="lg"
-                  />
-                </div>
-              )}
+              {activeConversation.event && activeConversation.otherUser && (() => {
+                const sponsorProfile = profile?.role === "sponsor" ? profile : activeConversation.otherUser;
+                return (
+                  <div className="flex flex-col items-center">
+                    <p className="text-xs text-muted-foreground mb-2">Match Score</p>
+                    <MatchBadge
+                      score={calculateMatchScore(activeConversation.event!, sponsorProfile!)}
+                      size="lg"
+                    />
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>
