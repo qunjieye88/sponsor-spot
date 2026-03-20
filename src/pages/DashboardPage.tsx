@@ -125,7 +125,7 @@ export default function DashboardPage() {
     if (activeType !== "Todos" && e.type !== activeType) return false;
 
     // Location
-    if (locationFilter && e.location !== locationFilter) return false;
+    if (locationFilter && locationFilter !== "all" && e.location !== locationFilter) return false;
 
     // Capacity
     if (capacityFilter) {
