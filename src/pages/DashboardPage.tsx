@@ -140,8 +140,10 @@ export default function DashboardPage() {
     }
 
     // Status
-    if (statusFilter === "published" && !e.published) return false;
-    if (statusFilter === "draft" && e.published) return false;
+    if (statusFilter && statusFilter !== "all") {
+      if (statusFilter === "published" && !e.published) return false;
+      if (statusFilter === "draft" && e.published) return false;
+    }
 
     // Date from
     if (dateFrom && e.date) {
