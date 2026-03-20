@@ -19,20 +19,21 @@ export default function AuthPage() {
     setLoading(true);
 
     if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         toast.error(error.message);
-      } else {
-        // Check if profile exists
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("user_id", user.id)
-            .maybeSingle();
-          navigate(profile ? "/dashboard" : "/onboarding");
-        }
+        setLoading(false);
+        return;
+      }
+      // Use the user from signIn response directly — no extra getUser call
+      const userId = data.user?.id;
+      if (userId) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("user_id", userId)
+          .maybeSingle();
+        navigate(profile ? "/dashboard" : "/onboarding", { replace: true });
       }
     } else {
       const { error } = await supabase.auth.signUp({
@@ -42,10 +43,11 @@ export default function AuthPage() {
       });
       if (error) {
         toast.error(error.message);
-      } else {
-        toast.success("Cuenta creada. Revisa tu email para confirmar o continúa con el onboarding.");
-        navigate("/onboarding");
+        setLoading(false);
+        return;
       }
+      toast.success("Cuenta creada. Continúa con el onboarding.");
+      navigate("/onboarding", { replace: true });
     }
     setLoading(false);
   };
