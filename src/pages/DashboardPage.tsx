@@ -67,6 +67,7 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [sortBy, setSortBy] = useState<string>("recent");
 
   // Unique locations from loaded events
   const [locations, setLocations] = useState<string[]>([]);
