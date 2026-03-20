@@ -123,7 +123,6 @@ export default function DashboardPage() {
                 <EventCard
                   event={event}
                   userRole={profile?.role || "sponsor"}
-                  onSendOffer={profile?.role === "sponsor" ? (ev) => setOfferEvent(ev) : undefined}
                 />
               </div>
             ))}
