@@ -10,41 +10,38 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Set up listener FIRST, then get initial session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          const { data } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("user_id", session.user.id)
-            .maybeSingle();
-          setProfile(data);
+          // Defer profile fetch to avoid Supabase auth deadlock
+          setTimeout(() => {
+            supabase
+              .from("profiles")
+              .select("*")
+              .eq("user_id", session.user!.id)
+              .maybeSingle()
+              .then(({ data }) => {
+                setProfile(data);
+                setLoading(false);
+              });
+          }, 0);
         } else {
           setProfile(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
+    // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", session.user.id)
-          .maybeSingle()
-          .then(({ data }) => {
-            setProfile(data);
-            setLoading(false);
-          });
-      } else {
+      if (!session) {
         setLoading(false);
       }
+      // onAuthStateChange will handle the rest
     });
 
     return () => subscription.unsubscribe();
