@@ -3,14 +3,13 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   CalendarDays,
-  Building2,
   Search,
   MessageSquare,
   LogOut,
   User,
-  Plus,
   Menu,
   X,
+  Inbox,
 } from "lucide-react";
 import { useState } from "react";
 
