@@ -4,7 +4,7 @@ interface MatchBadgeProps {
   className?: string;
 }
 
-export function MatchBadge({ score, size = "md" }: MatchBadgeProps) {
+export function MatchBadge({ score, size = "md", className }: MatchBadgeProps) {
   const isStrong = score >= 85;
   const circumference = 2 * Math.PI * 18;
   const offset = circumference - (score / 100) * circumference;
