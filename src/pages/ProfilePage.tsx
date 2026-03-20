@@ -24,6 +24,9 @@ export default function ProfilePage() {
   const [budgetMin, setBudgetMin] = useState(profile?.budget_min?.toString() || "");
   const [budgetMax, setBudgetMax] = useState(profile?.budget_max?.toString() || "");
   const [activations, setActivations] = useState((profile?.preferred_activations || []).join(", "));
+  const [preferredSectors, setPreferredSectors] = useState(((profile as any)?.preferred_sectors || []).join(", "));
+  const [preferredAudiences, setPreferredAudiences] = useState(((profile as any)?.preferred_audiences || []).join(", "));
+  const [preferredEventTypes, setPreferredEventTypes] = useState(((profile as any)?.preferred_event_types || []).join(", "));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
