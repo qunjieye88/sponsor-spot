@@ -186,12 +186,14 @@ export default function SponsorDetailPage() {
                 <Button
                   key={event.id}
                   variant="outline"
-                  className="w-full rounded-pill justify-start"
+                  className="w-full rounded-pill justify-start items-center"
                   onClick={() => startConversation(event)}
                 >
-                  <MessageSquare className="h-4 w-4 mr-2" />
+                  <MessageSquare className="h-4 w-4 mr-2 shrink-0" />
                   <span className="truncate">{event.title}</span>
-                  <MatchBadge score={calculateMatchScore(event, sponsor)} size="sm" className="ml-auto" />
+                  <div className="ml-auto shrink-0 flex items-center justify-center">
+                    <MatchBadge score={calculateMatchScore(event, sponsor)} size="sm" className="!flex-row !gap-1.5 [&>div]:h-8 [&>div]:w-8" />
+                  </div>
                 </Button>
               ))}
             </div>
