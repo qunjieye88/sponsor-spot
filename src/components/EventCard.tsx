@@ -1,10 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, MapPin, Users, Heart } from "lucide-react";
+import { CalendarDays, MapPin, Users } from "lucide-react";
 import type { Event, AppRole, Profile } from "@/lib/supabase-helpers";
 import { calculateMatchScore } from "@/lib/supabase-helpers";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { useState } from "react";
 
 interface EventCardProps {
   event: Event;
@@ -15,7 +14,6 @@ interface EventCardProps {
 
 export function EventCard({ event, sponsorProfile, organizer }: EventCardProps) {
   const navigate = useNavigate();
-  const [liked, setLiked] = useState(false);
 
   const matchScore = sponsorProfile ? calculateMatchScore(event, sponsorProfile) : null;
   const isStrongMatch = matchScore !== null && matchScore >= 80;
@@ -51,20 +49,6 @@ export function EventCard({ event, sponsorProfile, organizer }: EventCardProps) 
           </div>
         )}
 
-        {/* Top-right: Heart */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setLiked(!liked);
-          }}
-          className={`absolute top-3 right-3 h-9 w-9 rounded-full flex items-center justify-center transition-colors ${
-            liked
-              ? "bg-destructive text-white"
-              : "bg-foreground/30 backdrop-blur-sm text-white hover:bg-foreground/50"
-          }`}
-        >
-          <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
-        </button>
 
         {/* Bottom-left: Type badge */}
         {event.type && (
