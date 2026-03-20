@@ -22,7 +22,7 @@ export function MatchBadge({ score, size = "md", className }: MatchBadgeProps) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className={`flex flex-col items-center gap-1 ${className || ""}`}>
       <div className={`relative ${sizeMap[size]}`}>
         <svg className="w-full h-full -rotate-90" viewBox="0 0 40 40">
           <circle

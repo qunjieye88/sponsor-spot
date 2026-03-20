@@ -103,7 +103,7 @@ export default function SponsorDetailPage() {
                   <p className="text-muted-foreground">{sponsor.industry}</p>
                 )}
                 {sponsor.verified && (
-                  <span className="inline-block mt-1 px-2 py-0.5 rounded-pill bg-green-100 text-green-700 text-xs font-medium">
+                  <span className="inline-block mt-1 px-2 py-0.5 rounded-pill bg-primary/10 text-primary text-xs font-medium">
                     Verificado
                   </span>
                 )}
