@@ -4,15 +4,50 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { MatchBadge } from "@/components/MatchBadge";
+import { SendOfferDialog } from "@/components/SendOfferDialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
-  CalendarDays, MapPin, Users, DollarSign, Tag, ArrowLeft, MessageSquare, User,
+  CalendarDays, MapPin, Users, Euro, Tag, ArrowLeft, MessageSquare, User,
+  CheckCircle2, Send, Award, Shield, BarChart3, Globe, Play,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Event, Profile } from "@/lib/supabase-helpers";
 import { calculateMatchScore } from "@/lib/supabase-helpers";
+
+// Mock sponsorship packages (since DB doesn't have them yet)
+const mockPackages = [
+  {
+    name: "Bronce",
+    level: "bronze",
+    benefits: ["Logo en web del evento", "Mención en redes sociales", "2 entradas VIP"],
+  },
+  {
+    name: "Plata",
+    level: "silver",
+    benefits: ["Todo lo de Bronce", "Stand de 3x3m", "Logo en materiales impresos", "5 entradas VIP"],
+  },
+  {
+    name: "Oro",
+    level: "gold",
+    benefits: ["Todo lo de Plata", "Charla de 15 min en escenario", "Stand premium 5x5m", "10 entradas VIP", "Branding exclusivo en zona principal"],
+  },
+];
+
+function getPackagePrice(event: Event, idx: number) {
+  if (!event.sponsorship_min || !event.sponsorship_max) return null;
+  const range = event.sponsorship_max - event.sponsorship_min;
+  const step = range / 3;
+  return Math.round(event.sponsorship_min + step * idx);
+}
+
+const levelColors: Record<string, string> = {
+  bronze: "bg-amber-100 text-amber-800 border-amber-300",
+  silver: "bg-slate-100 text-slate-700 border-slate-300",
+  gold: "bg-yellow-100 text-yellow-800 border-yellow-400",
+};
 
 export default function EventDetailPage() {
   const { id } = useParams();
@@ -21,6 +56,7 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<Event | null>(null);
   const [organizer, setOrganizer] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [offerOpen, setOfferOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -47,44 +83,14 @@ export default function EventDetailPage() {
       });
   }, [id]);
 
-  const startConversation = async () => {
-    if (!event || !profile || !organizer) return;
-
-    // Check existing conversation
-    const { data: existing } = await supabase
-      .from("conversations")
-      .select("id")
-      .eq("event_id", event.id)
-      .eq("sponsor_id", profile.id)
-      .maybeSingle();
-
-    if (existing) {
-      navigate(`/messages?conversation=${existing.id}`);
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from("conversations")
-      .insert({
-        event_id: event.id,
-        organizer_id: organizer.id,
-        sponsor_id: profile.id,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      navigate(`/messages?conversation=${data.id}`);
-    }
-  };
-
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-card rounded-2xl h-96 animate-pulse" />
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="bg-card rounded-2xl h-64 animate-pulse" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => <div key={i} className="bg-card rounded-xl h-24 animate-pulse" />)}
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -101,113 +107,243 @@ export default function EventDetailPage() {
   }
 
   const matchScore = profile?.role === "sponsor" ? calculateMatchScore(event, profile) : null;
+  const confirmedCount = event.confirmed_sponsors?.length || 0;
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto animate-slide-up">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4 -ml-2">
+      <div className="max-w-4xl mx-auto animate-slide-up space-y-6">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-0 -ml-2">
           <ArrowLeft className="h-4 w-4 mr-1" /> Volver
         </Button>
 
+        {/* Hero */}
         <div className="bg-card rounded-2xl shadow-card overflow-hidden">
-          {/* Hero */}
-          <div className="h-48 gradient-primary relative">
+          <div className="h-56 md:h-72 relative overflow-hidden">
             {event.media && event.media.length > 0 ? (
               <img src={event.media[0]} alt={event.title} className="w-full h-full object-cover" />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <CalendarDays className="h-16 w-16 text-white/30" />
-              </div>
+              <div className="w-full h-full gradient-primary" />
             )}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-6 pb-6 pt-16">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  {event.type && (
+                    <span className="inline-block mb-2 px-3 py-1 rounded-pill bg-white/90 text-foreground text-xs font-semibold">
+                      {event.type}
+                    </span>
+                  )}
+                  <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-md" style={{ lineHeight: 1.15, textWrap: "balance" as any }}>
+                    {event.title}
+                  </h1>
+                </div>
+                {matchScore !== null && <MatchBadge score={matchScore} className="shrink-0" />}
+              </div>
+            </div>
           </div>
 
-          <div className="p-6 space-y-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold">{event.title}</h1>
-                {event.type && (
-                  <span className="inline-block mt-2 px-3 py-1 rounded-pill bg-primary/10 text-primary text-sm font-medium">
-                    {event.type}
-                  </span>
-                )}
-              </div>
-              {matchScore !== null && <MatchBadge score={matchScore} />}
-            </div>
-
-            {event.description && (
-              <p className="text-muted-foreground leading-relaxed">{event.description}</p>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
+          <div className="p-6 space-y-2">
+            {/* Quick info row */}
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
               {event.date && (
-                <div className="flex items-center gap-2 text-sm">
+                <span className="flex items-center gap-1.5">
                   <CalendarDays className="h-4 w-4 text-primary" />
-                  <span>{format(new Date(event.date), "EEEE d 'de' MMMM, yyyy · HH:mm", { locale: es })}</span>
-                </div>
+                  {format(new Date(event.date), "EEEE d 'de' MMMM, yyyy", { locale: es })}
+                </span>
               )}
               {event.location && (
-                <div className="flex items-center gap-2 text-sm">
+                <span className="flex items-center gap-1.5">
                   <MapPin className="h-4 w-4 text-primary" />
-                  <span>{event.location}</span>
-                </div>
-              )}
-              {event.capacity != null && event.capacity > 0 && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Users className="h-4 w-4 text-primary" />
-                  <span>{event.capacity.toLocaleString()} asistentes</span>
-                </div>
-              )}
-              {event.sponsorship_max != null && event.sponsorship_max > 0 && (
-                <div className="flex items-center gap-2 text-sm">
-                  <DollarSign className="h-4 w-4 text-primary" />
-                  <span>${event.sponsorship_min?.toLocaleString()} - ${event.sponsorship_max.toLocaleString()}</span>
-                </div>
-              )}
-              {event.sector && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Tag className="h-4 w-4 text-primary" />
-                  <span>{event.sector}</span>
-                </div>
-              )}
-              {event.audience && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Users className="h-4 w-4 text-primary" />
-                  <span>Audiencia: {event.audience}</span>
-                </div>
+                  {event.location}
+                </span>
               )}
             </div>
 
-            {/* Organizer info */}
-            {organizer && (
-              <div className="border-t border-border pt-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                    {organizer.avatar_url ? (
-                      <img src={organizer.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />
-                    ) : (
-                      <User className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{organizer.name}</p>
-                    <p className="text-xs text-muted-foreground">Organizador</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* CTA for sponsors */}
+            {/* CTAs */}
             {profile?.role === "sponsor" && (
-              <Button
-                onClick={startConversation}
-                className="w-full gradient-primary text-white border-0 rounded-pill h-11"
-              >
-                <MessageSquare className="h-4 w-4 mr-2" /> Contactar Organizador
-              </Button>
+              <div className="flex gap-3 pt-3">
+                <Button
+                  onClick={() => setOfferOpen(true)}
+                  className="gradient-primary text-white border-0 rounded-pill"
+                >
+                  <Send className="h-4 w-4 mr-2" /> Enviar oferta
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-pill"
+                  onClick={async () => {
+                    if (!profile || !organizer) return;
+                    const { data: existing } = await supabase
+                      .from("conversations")
+                      .select("id")
+                      .eq("event_id", event.id)
+                      .eq("sponsor_id", profile.id)
+                      .maybeSingle();
+                    if (existing) {
+                      navigate(`/messages?conversation=${existing.id}`);
+                      return;
+                    }
+                    const { data, error } = await supabase
+                      .from("conversations")
+                      .insert({ event_id: event.id, organizer_id: organizer.id, sponsor_id: profile.id })
+                      .select().single();
+                    if (error) toast.error(error.message);
+                    else navigate(`/messages?conversation=${data.id}`);
+                  }}
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" /> Contactar
+                </Button>
+              </div>
             )}
           </div>
         </div>
+
+        {/* Verified metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {event.capacity != null && event.capacity > 0 && (
+            <MetricCard icon={Users} label="Aforo confirmado" value={`${event.capacity.toLocaleString()}`} />
+          )}
+          {event.sector && (
+            <MetricCard icon={Tag} label="Sector" value={event.sector} />
+          )}
+          {event.sponsorship_max != null && event.sponsorship_max > 0 && (
+            <MetricCard icon={Euro} label="Rango patrocinio" value={`€${event.sponsorship_min?.toLocaleString()} – €${event.sponsorship_max.toLocaleString()}`} />
+          )}
+          {confirmedCount > 0 && (
+            <MetricCard icon={CheckCircle2} label="Sponsors confirmados" value={`${confirmedCount}`} verified />
+          )}
+        </div>
+
+        {/* Description */}
+        {event.description && (
+          <div className="bg-card rounded-2xl shadow-card p-6 space-y-3">
+            <h2 className="text-lg font-semibold">Sobre el evento</h2>
+            <div className="text-muted-foreground leading-relaxed whitespace-pre-line">
+              {event.description}
+            </div>
+            {event.audience && (
+              <div className="pt-2">
+                <p className="text-sm font-medium">Perfil de audiencia</p>
+                <p className="text-sm text-muted-foreground">{event.audience}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Confirmed sponsors */}
+        {confirmedCount > 0 && (
+          <div className="bg-card rounded-2xl shadow-card p-6 space-y-4">
+            <h2 className="text-lg font-semibold">Sponsors confirmados</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {event.confirmed_sponsors!.map((name, i) => (
+                <div key={i} className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 border border-border">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Award className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium line-clamp-1">{name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Sponsorship packages */}
+        {event.sponsorship_max != null && event.sponsorship_max > 0 && (
+          <div className="bg-card rounded-2xl shadow-card p-6 space-y-4">
+            <h2 className="text-lg font-semibold">Paquetes de patrocinio</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {mockPackages.map((pkg, idx) => {
+                const price = getPackagePrice(event, idx);
+                return (
+                  <div key={pkg.level} className={`rounded-xl border-2 p-5 space-y-3 ${levelColors[pkg.level]} transition-shadow hover:shadow-md`}>
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-bold text-base">{pkg.name}</h3>
+                      <Badge variant="outline" className="text-xs">{pkg.level === "gold" ? "⭐" : pkg.level === "silver" ? "🥈" : "🥉"}</Badge>
+                    </div>
+                    {price && (
+                      <p className="text-xl font-bold">€{price.toLocaleString()}</p>
+                    )}
+                    <ul className="space-y-1.5">
+                      {pkg.benefits.map((b, j) => (
+                        <li key={j} className="flex items-start gap-1.5 text-sm">
+                          <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 shrink-0 opacity-70" />
+                          {b}
+                        </li>
+                      ))}
+                    </ul>
+                    {profile?.role === "sponsor" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full rounded-pill text-xs mt-2"
+                        onClick={() => setOfferOpen(true)}
+                      >
+                        Seleccionar paquete
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Media gallery */}
+        {event.media && event.media.length > 0 && (
+          <div className="bg-card rounded-2xl shadow-card p-6 space-y-4">
+            <h2 className="text-lg font-semibold">Galería</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {event.media.map((url, i) => (
+                <div key={i} className="aspect-video rounded-xl overflow-hidden bg-muted">
+                  {url.match(/youtube|vimeo/) ? (
+                    <iframe src={url} className="w-full h-full" allowFullScreen />
+                  ) : (
+                    <img src={url} alt={`${event.title} ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Organizer info */}
+        {organizer && (
+          <div className="bg-card rounded-2xl shadow-card p-6">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
+                {organizer.avatar_url ? (
+                  <img src={organizer.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
+                ) : (
+                  <User className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div>
+                <p className="font-semibold">{organizer.name}</p>
+                <p className="text-sm text-muted-foreground">Organizador</p>
+                {organizer.verified && (
+                  <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium mt-0.5">
+                    <Shield className="h-3 w-3" /> Verificado
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      <SendOfferDialog event={event} open={offerOpen} onOpenChange={setOfferOpen} />
     </DashboardLayout>
+  );
+}
+
+function MetricCard({ icon: Icon, label, value, verified }: { icon: any; label: string; value: string; verified?: boolean }) {
+  return (
+    <div className="bg-card rounded-xl p-4 shadow-card space-y-1">
+      <div className="flex items-center gap-2">
+        <Icon className="h-4 w-4 text-primary" />
+        {verified && <Shield className="h-3.5 w-3.5 text-emerald-500" />}
+      </div>
+      <p className="text-lg font-bold tabular-nums">{value}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+    </div>
   );
 }

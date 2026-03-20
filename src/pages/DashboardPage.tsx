@@ -1,20 +1,19 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { EventCard } from "@/components/EventCard";
-import { Button } from "@/components/ui/button";
+import { SendOfferDialog } from "@/components/SendOfferDialog";
 import { Input } from "@/components/ui/input";
 import { Search, CalendarDays, TrendingUp, Users } from "lucide-react";
 import type { Event } from "@/lib/supabase-helpers";
 
 export default function DashboardPage() {
   const { profile } = useAuthContext();
-  const navigate = useNavigate();
   const [events, setEvents] = useState<Event[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [offerEvent, setOfferEvent] = useState<Event | null>(null);
 
   useEffect(() => {
     fetchEvents();
@@ -23,15 +22,12 @@ export default function DashboardPage() {
   const fetchEvents = async () => {
     if (!profile) return;
     setLoading(true);
-
     let query = supabase.from("events").select("*");
-
     if (profile.role === "organizer") {
       query = query.eq("organizer_id", profile.id);
     } else {
       query = query.eq("published", true);
     }
-
     const { data } = await query.order("created_at", { ascending: false });
     setEvents(data || []);
     setLoading(false);
@@ -62,17 +58,15 @@ export default function DashboardPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in">
-          <div>
-            <h1 className="text-2xl font-bold">
-              {profile?.role === "organizer" ? "Mis Eventos" : "Explorar Eventos"}
-            </h1>
-            <p className="text-muted-foreground">
-              {profile?.role === "organizer"
-                ? "Gestiona y publica tus eventos"
-                : "Encuentra eventos para patrocinar"}
-            </p>
-          </div>
+        <div className="animate-fade-in">
+          <h1 className="text-2xl font-bold">
+            {profile?.role === "organizer" ? "Mis Eventos" : "Explorar Eventos"}
+          </h1>
+          <p className="text-muted-foreground">
+            {profile?.role === "organizer"
+              ? "Gestiona y publica tus eventos"
+              : "Encuentra eventos para patrocinar"}
+          </p>
         </div>
 
         {/* Stats */}
@@ -107,7 +101,7 @@ export default function DashboardPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-card rounded-xl h-64 animate-pulse" />
+              <div key={i} className="bg-card rounded-xl h-80 animate-pulse" />
             ))}
           </div>
         ) : filteredEvents.length === 0 ? (
@@ -116,7 +110,7 @@ export default function DashboardPage() {
             <h3 className="font-semibold text-lg">No hay eventos todavía</h3>
             <p className="text-muted-foreground mt-1">
               {profile?.role === "organizer"
-                ? "Crea tu primer evento para empezar"
+                ? "No tienes eventos asociados aún"
                 : "Los organizadores aún no han publicado eventos"}
             </p>
           </div>
@@ -128,12 +122,22 @@ export default function DashboardPage() {
                 className="animate-slide-up"
                 style={{ animationDelay: `${0.05 * i}s`, animationFillMode: "both" }}
               >
-                <EventCard event={event} userRole={profile?.role || "sponsor"} />
+                <EventCard
+                  event={event}
+                  userRole={profile?.role || "sponsor"}
+                  onSendOffer={profile?.role === "sponsor" ? (ev) => setOfferEvent(ev) : undefined}
+                />
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <SendOfferDialog
+        event={offerEvent}
+        open={!!offerEvent}
+        onOpenChange={(open) => { if (!open) setOfferEvent(null); }}
+      />
     </DashboardLayout>
   );
 }
