@@ -3,14 +3,13 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   CalendarDays,
-  Building2,
   Search,
   MessageSquare,
   LogOut,
   User,
-  Plus,
   Menu,
   X,
+  Inbox,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -28,10 +27,12 @@ export function Navbar() {
     ? [
         { label: "Mis Eventos", href: "/dashboard", icon: CalendarDays },
         { label: "Buscar Sponsors", href: "/sponsors", icon: Search },
+        { label: "Solicitudes", href: "/contact-requests", icon: Inbox },
         { label: "Mensajes", href: "/messages", icon: MessageSquare },
       ]
     : [
         { label: "Explorar Eventos", href: "/dashboard", icon: Search },
+        { label: "Solicitudes", href: "/contact-requests", icon: Inbox },
         { label: "Mensajes", href: "/messages", icon: MessageSquare },
       ];
 

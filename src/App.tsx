@@ -14,6 +14,8 @@ import EventFormPage from "./pages/EventFormPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import SponsorsPage from "./pages/SponsorsPage";
 import SponsorDetailPage from "./pages/SponsorDetailPage";
+import OrganizerProfilePage from "./pages/OrganizerProfilePage";
+import ContactRequestsPage from "./pages/ContactRequestsPage";
 import ProfilePage from "./pages/ProfilePage";
 import MessagesPage from "./pages/MessagesPage";
 import NotFound from "./pages/NotFound";
@@ -83,6 +85,22 @@ const App = () => (
               element={
                 <RequireProfile>
                   <SponsorDetailPage />
+                </RequireProfile>
+              }
+            />
+            <Route
+              path="/organizers/:id"
+              element={
+                <RequireProfile>
+                  <OrganizerProfilePage />
+                </RequireProfile>
+              }
+            />
+            <Route
+              path="/contact-requests"
+              element={
+                <RequireProfile>
+                  <ContactRequestsPage />
                 </RequireProfile>
               }
             />
