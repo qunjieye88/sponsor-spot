@@ -14,16 +14,245 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      conversations: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          organizer_id: string
+          sponsor_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          organizer_id: string
+          sponsor_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          organizer_id?: string
+          sponsor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          audience: string | null
+          capacity: number | null
+          confirmed_sponsors: string[] | null
+          created_at: string
+          date: string | null
+          description: string | null
+          id: string
+          location: string | null
+          media: string[] | null
+          organizer_id: string
+          published: boolean | null
+          sector: string | null
+          sponsorship_max: number | null
+          sponsorship_min: number | null
+          title: string
+          type: string | null
+          updated_at: string
+        }
+        Insert: {
+          audience?: string | null
+          capacity?: number | null
+          confirmed_sponsors?: string[] | null
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          media?: string[] | null
+          organizer_id: string
+          published?: boolean | null
+          sector?: string | null
+          sponsorship_max?: number | null
+          sponsorship_min?: number | null
+          title: string
+          type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          audience?: string | null
+          capacity?: number | null
+          confirmed_sponsors?: string[] | null
+          created_at?: string
+          date?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          media?: string[] | null
+          organizer_id?: string
+          published?: boolean | null
+          sector?: string | null
+          sponsorship_max?: number | null
+          sponsorship_min?: number | null
+          title?: string
+          type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          attachments: string[] | null
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          seen: boolean | null
+          sender_id: string
+        }
+        Insert: {
+          attachments?: string[] | null
+          content?: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          seen?: boolean | null
+          sender_id: string
+        }
+        Update: {
+          attachments?: string[] | null
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          seen?: boolean | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string
+          description: string | null
+          event_types: string[] | null
+          id: string
+          industry: string | null
+          name: string
+          preferred_activations: string[] | null
+          rating: number | null
+          role: Database["public"]["Enums"]["app_role"]
+          social_links: string[] | null
+          tags: string[] | null
+          total_events: number | null
+          updated_at: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          description?: string | null
+          event_types?: string[] | null
+          id?: string
+          industry?: string | null
+          name?: string
+          preferred_activations?: string[] | null
+          rating?: number | null
+          role: Database["public"]["Enums"]["app_role"]
+          social_links?: string[] | null
+          tags?: string[] | null
+          total_events?: number | null
+          updated_at?: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          description?: string | null
+          event_types?: string[] | null
+          id?: string
+          industry?: string | null
+          name?: string
+          preferred_activations?: string[] | null
+          rating?: number | null
+          role?: Database["public"]["Enums"]["app_role"]
+          social_links?: string[] | null
+          tags?: string[] | null
+          total_events?: number | null
+          updated_at?: string
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_profile_id: { Args: { _user_id: string }; Returns: string }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      is_conversation_participant: {
+        Args: { _conversation_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "organizer" | "sponsor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +379,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["organizer", "sponsor"],
+    },
   },
 } as const
