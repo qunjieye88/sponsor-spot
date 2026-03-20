@@ -127,7 +127,7 @@ export default function Index() {
             <p className="text-white/80 mb-8 max-w-md mx-auto">
               Crea tu cuenta gratuita y descubre oportunidades de patrocinio en minutos.
             </p>
-            <Link to="/auth">
+            <Link to="/auth?mode=signup">
               <Button size="lg" className="bg-white text-foreground hover:bg-white/90 rounded-pill h-12 px-8 font-semibold">
                 Crear cuenta gratis <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
