@@ -160,6 +160,24 @@ export default function DashboardPage() {
     return true;
   });
 
+  const sortedEvents = useMemo(() => {
+    if (sortBy === "match" && profile?.role === "sponsor") {
+      return [...filteredEvents].sort((a, b) => {
+        const scoreA = calculateMatchScore(a, profile);
+        const scoreB = calculateMatchScore(b, profile);
+        return scoreB - scoreA;
+      });
+    }
+    if (sortBy === "date") {
+      return [...filteredEvents].sort((a, b) => {
+        const da = a.date ? new Date(a.date).getTime() : 0;
+        const db = b.date ? new Date(b.date).getTime() : 0;
+        return db - da;
+      });
+    }
+    return filteredEvents; // recent = default DB order
+  }, [filteredEvents, sortBy, profile]);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
