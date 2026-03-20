@@ -134,7 +134,7 @@ export default function DashboardPage() {
     }
 
     // Budget
-    if (budgetFilter) {
+    if (budgetFilter && budgetFilter !== "any") {
       const max = parseInt(budgetFilter);
       if ((e.sponsorship_max ?? 0) >= max) return false;
     }
