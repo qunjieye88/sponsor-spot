@@ -130,7 +130,22 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <Label>Activaciones preferidas</Label>
-                  <Input value={activations} onChange={(e) => setActivations(e.target.value)} />
+                  <Input value={activations} onChange={(e) => setActivations(e.target.value)} placeholder="Stand, Sampling, Naming..." />
+                </div>
+                <div>
+                  <Label>Sectores de interés</Label>
+                  <Input value={preferredSectors} onChange={(e) => setPreferredSectors(e.target.value)} placeholder="Tecnología, Deportes, Música..." />
+                  <p className="text-xs text-muted-foreground mt-1">Separa con comas los sectores que te interesan</p>
+                </div>
+                <div>
+                  <Label>Tipos de evento preferidos</Label>
+                  <Input value={preferredEventTypes} onChange={(e) => setPreferredEventTypes(e.target.value)} placeholder="Festival Musical, Conferencia Tech..." />
+                  <p className="text-xs text-muted-foreground mt-1">Separa con comas los tipos de evento</p>
+                </div>
+                <div>
+                  <Label>Audiencias de interés</Label>
+                  <Input value={preferredAudiences} onChange={(e) => setPreferredAudiences(e.target.value)} placeholder="Jóvenes 18-30, Profesionales, Familias..." />
+                  <p className="text-xs text-muted-foreground mt-1">Separa con comas las audiencias objetivo</p>
                 </div>
               </>
             )}
