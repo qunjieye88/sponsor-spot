@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Search, CalendarDays, TrendingUp, Users, SlidersHorizontal, CalendarIcon } from "lucide-react";
+import { Search, CalendarDays, SlidersHorizontal, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
