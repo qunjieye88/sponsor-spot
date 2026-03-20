@@ -52,19 +52,14 @@ export default function EventDetailPage() {
           ? supabase.from("contact_requests").select("*").eq("event_id", id).eq("sponsor_id", profile.id).maybeSingle()
           : Promise.resolve({ data: null, error: null });
         const sponsorsPromise = (data.confirmed_sponsors && data.confirmed_sponsors.length > 0)
-          ? supabase.from("profiles").select("*").eq("role", "sponsor")
+          ? supabase.from("profiles").select("*").in("id", data.confirmed_sponsors)
           : Promise.resolve({ data: null, error: null });
 
         Promise.all([orgPromise, reqPromise, sponsorsPromise]).then(([orgRes, reqRes, sponsorsRes]) => {
           setOrganizer(orgRes.data);
           setContactRequest((reqRes as any).data || null);
-
-          if (sponsorsRes?.data && data.confirmed_sponsors) {
-            const names = data.confirmed_sponsors.map((n: string) => n.toLowerCase());
-            const matched = (sponsorsRes.data as Profile[]).filter(p =>
-              names.some((n: string) => p.name.toLowerCase().includes(n) || n.includes(p.name.toLowerCase()))
-            );
-            setConfirmedSponsorProfiles(matched);
+          if (sponsorsRes?.data) {
+            setConfirmedSponsorProfiles(sponsorsRes.data as Profile[]);
           }
 
           setLoading(false);
