@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Search, CalendarDays, SlidersHorizontal, CalendarIcon } from "lucide-react";
+import { Search, CalendarDays, SlidersHorizontal, CalendarIcon, ArrowUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import type { Event, Profile } from "@/lib/supabase-helpers";
+import { calculateMatchScore } from "@/lib/supabase-helpers";
 
 const EVENT_TYPES = [
   "Festival Musical",
