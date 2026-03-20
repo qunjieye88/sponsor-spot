@@ -3,6 +3,7 @@ interface MatchBadgeProps {
   size?: "xs" | "sm" | "md" | "lg";
   className?: string;
   hideLabel?: boolean;
+}
 
 export function MatchBadge({ score, size = "md", className, hideLabel }: MatchBadgeProps) {
   const isStrong = score >= 85;
