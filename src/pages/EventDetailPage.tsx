@@ -3,13 +3,11 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { MatchBadge } from "@/components/MatchBadge";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
-  CalendarDays, MapPin, Users, Euro, Tag, ArrowLeft, User,
-  CheckCircle2, Send, Award, Shield, MessageSquare, Loader2,
+  CalendarDays, MapPin, Users, ArrowLeft, User,
+  CheckCircle2, Send, Shield, MessageSquare, Loader2, Check,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -17,22 +15,21 @@ import type { Event, Profile, ContactRequest } from "@/lib/supabase-helpers";
 import { calculateMatchScore } from "@/lib/supabase-helpers";
 
 const mockPackages = [
-  { name: "Bronce", level: "bronze", benefits: ["Logo en web del evento", "Mención en redes sociales", "2 entradas VIP"] },
-  { name: "Plata", level: "silver", benefits: ["Todo lo de Bronce", "Stand de 3x3m", "Logo en materiales impresos", "5 entradas VIP"] },
-  { name: "Oro", level: "gold", benefits: ["Todo lo de Plata", "Charla de 15 min en escenario", "Stand premium 5x5m", "10 entradas VIP", "Branding exclusivo en zona principal"] },
+  { name: "Gold", benefits: ["Logo en escenario principal", "Stand 6x3m", "10 pases VIP", "Mención en RRSS"] },
+  { name: "Silver", benefits: ["Logo en materiales", "Stand 3x3m", "5 pases VIP"] },
+  { name: "Bronze", benefits: ["Logo en web", "2 pases VIP", "Mención en newsletter"] },
 ];
 
 function getPackagePrice(event: Event, idx: number) {
   if (!event.sponsorship_min || !event.sponsorship_max) return null;
   const range = event.sponsorship_max - event.sponsorship_min;
-  return Math.round(event.sponsorship_min + (range / 3) * idx);
+  const prices = [
+    event.sponsorship_max,
+    Math.round(event.sponsorship_min + range * 0.5),
+    event.sponsorship_min,
+  ];
+  return prices[idx];
 }
-
-const levelColors: Record<string, string> = {
-  bronze: "bg-amber-100 text-amber-800 border-amber-300",
-  silver: "bg-slate-100 text-slate-700 border-slate-300",
-  gold: "bg-yellow-100 text-yellow-800 border-yellow-400",
-};
 
 export default function EventDetailPage() {
   const { id } = useParams();
@@ -83,12 +80,37 @@ export default function EventDetailPage() {
     setSendingRequest(false);
   };
 
+  const handleGoToChat = async () => {
+    if (!profile || !organizer || !event) return;
+    const { data: existing } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("event_id", event.id)
+      .eq("sponsor_id", profile.id)
+      .maybeSingle();
+    if (existing) {
+      navigate(`/messages?conversation=${existing.id}`);
+      return;
+    }
+    const { error } = await supabase
+      .from("conversations")
+      .insert({ event_id: event.id, organizer_id: organizer.id, sponsor_id: profile.id });
+    if (error) { toast.error(error.message); return; }
+    const { data } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("event_id", event.id)
+      .eq("sponsor_id", profile.id)
+      .single();
+    if (data) navigate(`/messages?conversation=${data.id}`);
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div className="bg-card rounded-2xl h-64 animate-pulse" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <div className="bg-card rounded-2xl h-80 animate-pulse" />
+          <div className="grid grid-cols-2 gap-4">
             {[1, 2, 3, 4].map(i => <div key={i} className="bg-card rounded-xl h-24 animate-pulse" />)}
           </div>
         </div>
@@ -108,236 +130,262 @@ export default function EventDetailPage() {
   const confirmedCount = event.confirmed_sponsors?.length || 0;
   const requestStatus = contactRequest?.status;
 
+  // Detail grid items
+  const details = [
+    { label: "Tipo", value: event.type },
+    { label: "Sector", value: event.sector },
+    { label: "Audiencia", value: event.audience },
+    {
+      label: "Rango de patrocinio",
+      value: event.sponsorship_min != null && event.sponsorship_max != null
+        ? `$${(event.sponsorship_min / 1000).toFixed(0)}k - $${(event.sponsorship_max / 1000).toFixed(0)}k`
+        : null,
+    },
+    { label: "Sponsors confirmados", value: confirmedCount > 0 ? String(confirmedCount) : null },
+    { label: "Estado", value: event.published ? "Abierto" : "Borrador" },
+  ].filter(d => d.value);
+
+  // Match breakdown for sidebar
+  const matchBreakdown = matchScore !== null ? [
+    { label: "Audiencia", compatible: !!(event.audience && profile?.tags?.length) },
+    { label: "Sector", compatible: !!(event.sector && profile?.industry && event.sector.toLowerCase() === profile.industry.toLowerCase()) },
+    { label: "Presupuesto", compatible: !!(profile?.budget_min != null && profile?.budget_max != null && event.sponsorship_min != null && event.sponsorship_max != null) },
+  ] : null;
+
+  // Tags from confirmed sponsors / sector / audience
+  const tags = [
+    ...(event.sector ? [event.sector.toLowerCase()] : []),
+    ...(event.type ? [event.type.toLowerCase()] : []),
+    ...(event.audience ? event.audience.split(",").map(t => t.trim().toLowerCase()).slice(0, 3) : []),
+  ].filter((v, i, a) => a.indexOf(v) === i);
+
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto animate-slide-up space-y-6">
-        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-0 -ml-2">
-          <ArrowLeft className="h-4 w-4 mr-1" /> Volver
-        </Button>
-
-        {/* Hero */}
-        <div className="bg-card rounded-2xl shadow-card overflow-hidden">
-          <div className="h-56 md:h-72 relative overflow-hidden">
-            {event.media && event.media.length > 0 ? (
-              <img src={event.media[0]} alt={event.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full gradient-primary" />
-            )}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-6 pb-6 pt-16">
-              <div className="flex items-end justify-between gap-4">
-                <div>
-                  {event.type && (
-                    <span className="inline-block mb-2 px-3 py-1 rounded-pill bg-white/90 text-foreground text-xs font-semibold">{event.type}</span>
-                  )}
-                  <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-md" style={{ lineHeight: 1.15, textWrap: "balance" as any }}>
-                    {event.title}
-                  </h1>
-                </div>
-                {matchScore !== null && <MatchBadge score={matchScore} className="shrink-0" />}
-              </div>
-            </div>
-          </div>
-
-          <div className="p-6 space-y-2">
-            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+      <div className="max-w-6xl mx-auto animate-slide-up space-y-0">
+        {/* Hero — full-width cover */}
+        <div className="relative h-[340px] md:h-[420px] rounded-t-2xl overflow-hidden">
+          {event.media && event.media.length > 0 ? (
+            <img src={event.media[0]} alt={event.title} className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full gradient-primary" />
+          )}
+          {/* Overlay content */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 px-6 md:px-10 pb-8 space-y-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-1.5 text-white/80 hover:text-white text-sm transition-colors mb-2"
+            >
+              <ArrowLeft className="h-4 w-4" /> Volver a eventos
+            </button>
+            <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-md" style={{ lineHeight: 1.1 }}>
+              {event.title}
+            </h1>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-white/80 text-sm">
               {event.date && (
                 <span className="flex items-center gap-1.5">
-                  <CalendarDays className="h-4 w-4 text-primary" />
-                  {format(new Date(event.date), "EEEE d 'de' MMMM, yyyy", { locale: es })}
+                  <CalendarDays className="h-4 w-4" />
+                  {format(new Date(event.date), "d 'de' MMMM 'de' yyyy", { locale: es })}
                 </span>
               )}
               {event.location && (
                 <span className="flex items-center gap-1.5">
-                  <MapPin className="h-4 w-4 text-primary" />
+                  <MapPin className="h-4 w-4" />
                   {event.location}
                 </span>
               )}
+              {event.capacity != null && event.capacity > 0 && (
+                <span className="flex items-center gap-1.5">
+                  <Users className="h-4 w-4" />
+                  {event.capacity.toLocaleString()} asistentes
+                </span>
+              )}
             </div>
+          </div>
+        </div>
 
-            {/* CTAs for sponsors */}
-            {profile?.role === "sponsor" && (
-              <div className="flex gap-3 pt-3">
+        {/* Two-column layout */}
+        <div className="flex flex-col lg:flex-row gap-6 mt-0">
+          {/* Left column — main content */}
+          <div className="flex-1 space-y-8 py-8">
+            {/* Description */}
+            {event.description && (
+              <div className="space-y-2">
+                <h2 className="text-xl font-bold">Descripción</h2>
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{event.description}</p>
+              </div>
+            )}
+
+            {/* Details grid */}
+            {details.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold">Detalles del Evento</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {details.map((d) => (
+                    <div key={d.label} className="rounded-xl border border-border bg-card p-4 space-y-1">
+                      <p className="text-xs text-muted-foreground">{d.label}</p>
+                      <p className="font-semibold">{d.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sponsorship packages */}
+            {event.sponsorship_max != null && event.sponsorship_max > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold">Paquetes de Patrocinio</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {mockPackages.map((pkg, idx) => {
+                    const price = getPackagePrice(event, idx);
+                    return (
+                      <div key={pkg.name} className="rounded-xl border border-border bg-card p-5 flex flex-col">
+                        <h3 className="font-bold text-lg">{pkg.name}</h3>
+                        {price && (
+                          <p className="text-2xl font-bold mt-1 tabular-nums">
+                            ${price.toLocaleString()}
+                          </p>
+                        )}
+                        <ul className="mt-4 space-y-2 flex-1">
+                          {pkg.benefits.map((b, j) => (
+                            <li key={j} className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <Check className="h-4 w-4 mt-0.5 shrink-0 text-emerald-500" /> {b}
+                            </li>
+                          ))}
+                        </ul>
+                        <Button className="mt-5 w-full bg-foreground text-background hover:bg-foreground/90 rounded-lg">
+                          Seleccionar
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Tags */}
+            {tags.length > 0 && (
+              <div className="space-y-3">
+                <h2 className="text-xl font-bold">Tags</h2>
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <span key={tag} className="px-3 py-1.5 rounded-lg border border-border bg-card text-sm font-medium">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Organizer */}
+            {organizer && (
+              <div className="space-y-3">
+                <h2 className="text-xl font-bold">Organizador</h2>
+                <Link
+                  to={`/organizers/${organizer.id}`}
+                  className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
+                >
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-sm font-bold text-primary">
+                    {organizer.avatar_url ? (
+                      <img src={organizer.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
+                    ) : (
+                      organizer.name?.slice(0, 2).toUpperCase()
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">{organizer.name}</p>
+                      {organizer.verified && (
+                        <Shield className="h-4 w-4 text-emerald-500" />
+                      )}
+                    </div>
+                    {organizer.industry && (
+                      <p className="text-sm text-muted-foreground">{organizer.industry}</p>
+                    )}
+                  </div>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Right sidebar — sticky */}
+          {profile?.role === "sponsor" && (
+            <div className="lg:w-[340px] shrink-0 py-8">
+              <div className="lg:sticky lg:top-6 space-y-4">
+                {/* Match Score card */}
+                {matchScore !== null && (
+                  <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+                    {/* Circular score */}
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="relative h-28 w-28">
+                        <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
+                          <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--border))" strokeWidth="6" />
+                          <circle
+                            cx="50" cy="50" r="42"
+                            fill="none"
+                            stroke="hsl(var(--primary))"
+                            strokeWidth="6"
+                            strokeLinecap="round"
+                            strokeDasharray={`${matchScore * 2.64} ${264 - matchScore * 2.64}`}
+                          />
+                        </svg>
+                        <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold tabular-nums">
+                          {matchScore}
+                        </span>
+                      </div>
+                      <p className="font-semibold text-sm">Match Score</p>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Tu marca encaja con el {matchScore}% de la audiencia de este evento.
+                      </p>
+                    </div>
+
+                    {/* Breakdown */}
+                    {matchBreakdown && (
+                      <div className="space-y-2 pt-2 border-t border-border">
+                        {matchBreakdown.map((item) => (
+                          <div key={item.label} className="flex items-center justify-between text-sm">
+                            <span className="text-muted-foreground">{item.label}</span>
+                            <span className="flex items-center gap-1 text-emerald-500 font-medium text-xs">
+                              <Check className="h-3.5 w-3.5" /> Compatible
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Contact button */}
                 {requestStatus === "accepted" ? (
                   <Button
-                    className="gradient-primary text-white border-0 rounded-pill"
-                    onClick={async () => {
-                      if (!profile || !organizer) return;
-                      const { data: existing } = await supabase
-                        .from("conversations")
-                        .select("id")
-                        .eq("event_id", event.id)
-                        .eq("sponsor_id", profile.id)
-                        .maybeSingle();
-                      if (existing) {
-                        navigate(`/messages?conversation=${existing.id}`);
-                        return;
-                      }
-                      const { error } = await supabase
-                        .from("conversations")
-                        .insert({ event_id: event.id, organizer_id: organizer.id, sponsor_id: profile.id });
-                      if (error) { toast.error(error.message); return; }
-                      // Fetch the newly created conversation
-                      const { data } = await supabase
-                        .from("conversations")
-                        .select("id")
-                        .eq("event_id", event.id)
-                        .eq("sponsor_id", profile.id)
-                        .single();
-                      if (data) navigate(`/messages?conversation=${data.id}`);
-                    }}
+                    onClick={handleGoToChat}
+                    className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-lg h-12 text-base"
                   >
-                    <MessageSquare className="h-4 w-4 mr-2" /> Ir al chat
+                    <MessageSquare className="h-4 w-4 mr-2" /> Contactar Organizador
                   </Button>
                 ) : requestStatus === "pending" ? (
-                  <Button disabled variant="outline" className="rounded-pill">
+                  <Button disabled variant="outline" className="w-full rounded-lg h-12 text-base">
                     <Send className="h-4 w-4 mr-2" /> Solicitud pendiente
                   </Button>
                 ) : requestStatus === "rejected" ? (
-                  <Button disabled variant="outline" className="rounded-pill text-destructive">
+                  <Button disabled variant="outline" className="w-full rounded-lg h-12 text-base text-destructive">
                     Solicitud rechazada
                   </Button>
                 ) : (
                   <Button
                     onClick={handleContactRequest}
                     disabled={sendingRequest}
-                    className="gradient-primary text-white border-0 rounded-pill"
+                    className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-lg h-12 text-base"
                   >
                     {sendingRequest ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
-                    Contactar
+                    Contactar Organizador
                   </Button>
                 )}
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {event.capacity != null && event.capacity > 0 && (
-            <MetricCard icon={Users} label="Aforo confirmado" value={`${event.capacity.toLocaleString()}`} />
+            </div>
           )}
-          {event.sector && <MetricCard icon={Tag} label="Sector" value={event.sector} />}
-          {event.sponsorship_max != null && event.sponsorship_max > 0 && (
-            <MetricCard icon={Euro} label="Rango patrocinio" value={`€${event.sponsorship_min?.toLocaleString()} – €${event.sponsorship_max.toLocaleString()}`} />
-          )}
-          {confirmedCount > 0 && <MetricCard icon={CheckCircle2} label="Sponsors confirmados" value={`${confirmedCount}`} verified />}
         </div>
-
-        {/* Description */}
-        {event.description && (
-          <div className="bg-card rounded-2xl shadow-card p-6 space-y-3">
-            <h2 className="text-lg font-semibold">Sobre el evento</h2>
-            <div className="text-muted-foreground leading-relaxed whitespace-pre-line">{event.description}</div>
-            {event.audience && (
-              <div className="pt-2">
-                <p className="text-sm font-medium">Perfil de audiencia</p>
-                <p className="text-sm text-muted-foreground">{event.audience}</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Confirmed sponsors */}
-        {confirmedCount > 0 && (
-          <div className="bg-card rounded-2xl shadow-card p-6 space-y-4">
-            <h2 className="text-lg font-semibold">Sponsors confirmados</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {event.confirmed_sponsors!.map((name, i) => (
-                <div key={i} className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 border border-border">
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Award className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium line-clamp-1">{name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Sponsorship packages */}
-        {event.sponsorship_max != null && event.sponsorship_max > 0 && (
-          <div className="bg-card rounded-2xl shadow-card p-6 space-y-4">
-            <h2 className="text-lg font-semibold">Paquetes de patrocinio</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {mockPackages.map((pkg, idx) => {
-                const price = getPackagePrice(event, idx);
-                return (
-                  <div key={pkg.level} className={`rounded-xl border-2 p-5 space-y-3 ${levelColors[pkg.level]} transition-shadow hover:shadow-md`}>
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-base">{pkg.name}</h3>
-                      <Badge variant="outline" className="text-xs">{pkg.level === "gold" ? "⭐" : pkg.level === "silver" ? "🥈" : "🥉"}</Badge>
-                    </div>
-                    {price && <p className="text-xl font-bold">€{price.toLocaleString()}</p>}
-                    <ul className="space-y-1.5">
-                      {pkg.benefits.map((b, j) => (
-                        <li key={j} className="flex items-start gap-1.5 text-sm">
-                          <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 shrink-0 opacity-70" /> {b}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Media gallery */}
-        {event.media && event.media.length > 0 && (
-          <div className="bg-card rounded-2xl shadow-card p-6 space-y-4">
-            <h2 className="text-lg font-semibold">Galería</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {event.media.map((url, i) => (
-                <div key={i} className="aspect-video rounded-xl overflow-hidden bg-muted">
-                  {url.match(/youtube|vimeo/) ? (
-                    <iframe src={url} className="w-full h-full" allowFullScreen />
-                  ) : (
-                    <img src={url} alt={`${event.title} ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Organizer info — clickable */}
-        {organizer && (
-          <Link to={`/organizers/${organizer.id}`} className="block bg-card rounded-2xl shadow-card p-6 transition-all hover:shadow-card-hover hover:-translate-y-0.5 group/org">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
-                {organizer.avatar_url ? (
-                  <img src={organizer.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
-                ) : (
-                  <User className="h-6 w-6 text-muted-foreground" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold group-hover/org:text-primary transition-colors">{organizer.name}</p>
-                <p className="text-sm text-muted-foreground">Organizador</p>
-                {organizer.verified && (
-                  <span className="inline-flex items-center gap-1 text-xs text-emerald-600 font-medium mt-0.5">
-                    <Shield className="h-3 w-3" /> Verificado
-                  </span>
-                )}
-              </div>
-              <ArrowLeft className="h-4 w-4 text-muted-foreground rotate-180 opacity-0 group-hover/org:opacity-100 transition-opacity" />
-            </div>
-          </Link>
-        )}
       </div>
     </DashboardLayout>
-  );
-}
-
-function MetricCard({ icon: Icon, label, value, verified }: { icon: any; label: string; value: string; verified?: boolean }) {
-  return (
-    <div className="bg-card rounded-xl p-4 shadow-card space-y-1">
-      <div className="flex items-center gap-2">
-        <Icon className="h-4 w-4 text-primary" />
-        {verified && <Shield className="h-3.5 w-3.5 text-emerald-500" />}
-      </div>
-      <p className="text-lg font-bold tabular-nums">{value}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
-    </div>
   );
 }
