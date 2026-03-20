@@ -18,7 +18,8 @@ export default function SponsorDetailPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [existingConvs, setExistingConvs] = useState<Record<string, string>>({});
-  const [contactedEvents, setContactedEvents] = useState<Set<string>>(new Set());
+  const [existingRequests, setExistingRequests] = useState<Record<string, string>>({});
+  const [sendingEvent, setSendingEvent] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,17 +33,21 @@ export default function SponsorDetailPage() {
       const evts = (eventsRes.data as Event[]) || [];
       setEvents(evts);
 
-      // Check existing conversations for each event
+      // Check existing conversations and contact requests
       if (profile && id && evts.length > 0) {
-        const { data: convs } = await supabase
-          .from("conversations")
-          .select("id, event_id")
-          .eq("organizer_id", profile.id)
-          .eq("sponsor_id", id);
-        if (convs) {
+        const [convsRes, reqsRes] = await Promise.all([
+          supabase.from("conversations").select("id, event_id").eq("organizer_id", profile.id).eq("sponsor_id", id),
+          supabase.from("contact_requests").select("id, event_id, status").eq("organizer_id", profile.id).eq("sponsor_id", id),
+        ]);
+        if (convsRes.data) {
           const map: Record<string, string> = {};
-          convs.forEach((c) => { map[c.event_id] = c.id; });
+          convsRes.data.forEach((c) => { map[c.event_id] = c.id; });
           setExistingConvs(map);
+        }
+        if (reqsRes.data) {
+          const map: Record<string, string> = {};
+          reqsRes.data.forEach((r) => { map[r.event_id] = r.status; });
+          setExistingRequests(map);
         }
       }
 
@@ -60,22 +65,11 @@ export default function SponsorDetailPage() {
       return;
     }
 
-    // If already contacted in this session, navigate
-    if (contactedEvents.has(event.id)) return;
+    // If already requested, do nothing
+    if (existingRequests[event.id]) return;
+    if (sendingEvent) return;
 
-    const { data: existing } = await supabase
-      .from("conversations")
-      .select("id")
-      .eq("event_id", event.id)
-      .eq("organizer_id", profile.id)
-      .eq("sponsor_id", sponsor.id)
-      .maybeSingle();
-
-    if (existing) {
-      setExistingConvs((prev) => ({ ...prev, [event.id]: existing.id }));
-      navigate(`/messages?conversation=${existing.id}`);
-      return;
-    }
+    setSendingEvent(event.id);
 
     const { data, error } = await supabase
       .from("conversations")
@@ -87,9 +81,9 @@ export default function SponsorDetailPage() {
       toast.error(error.message);
     } else {
       setExistingConvs((prev) => ({ ...prev, [event.id]: data.id }));
-      setContactedEvents((prev) => new Set(prev).add(event.id));
       navigate(`/messages?conversation=${data.id}`);
     }
+    setSendingEvent(null);
   };
 
   if (loading) {
@@ -218,24 +212,36 @@ export default function SponsorDetailPage() {
               <h2 className="text-sm font-semibold text-muted-foreground">Contactar sobre evento</h2>
               {events.map((event) => {
                 const hasConv = !!existingConvs[event.id];
+                const reqStatus = existingRequests[event.id];
+                const isSending = sendingEvent === event.id;
+                const isDisabled = hasConv || !!reqStatus || isSending;
+
+                let statusLabel = "";
+                let statusIcon = <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />;
+
+                if (hasConv) {
+                  statusLabel = "Contactado";
+                  statusIcon = <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />;
+                } else if (reqStatus) {
+                  statusLabel = reqStatus === "pending" ? "Pendiente" : reqStatus === "accepted" ? "Aceptado" : "Rechazado";
+                  statusIcon = <CheckCircle2 className="h-4 w-4 shrink-0 text-muted-foreground" />;
+                }
+
                 return (
                   <button
                     key={event.id}
+                    disabled={isDisabled}
                     className={`w-full flex items-center gap-2 px-4 py-2 rounded-full border transition-colors text-sm ${
-                      hasConv
-                        ? "border-primary/30 bg-primary/5 text-muted-foreground cursor-default"
+                      isDisabled
+                        ? "border-primary/30 bg-primary/5 text-muted-foreground cursor-default opacity-70"
                         : "border-border bg-card hover:bg-accent/50"
                     }`}
                     onClick={() => startConversation(event)}
                   >
-                    {hasConv ? (
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                    ) : (
-                      <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    )}
+                    {statusIcon}
                     <span className="truncate">{event.title}</span>
-                    {hasConv && (
-                      <span className="text-xs text-primary font-medium whitespace-nowrap">Contactado</span>
+                    {statusLabel && (
+                      <span className="text-xs text-primary font-medium whitespace-nowrap">{statusLabel}</span>
                     )}
                     <div className="ml-auto shrink-0">
                       <MatchBadge score={calculateMatchScore(event, sponsor)} size="xs" hideLabel />
