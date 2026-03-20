@@ -172,12 +172,18 @@ export default function EventDetailPage() {
                         navigate(`/messages?conversation=${existing.id}`);
                         return;
                       }
-                      const { data, error } = await supabase
+                      const { error } = await supabase
                         .from("conversations")
-                        .insert({ event_id: event.id, organizer_id: organizer.id, sponsor_id: profile.id })
-                        .select().single();
-                      if (error) toast.error(error.message);
-                      else navigate(`/messages?conversation=${data.id}`);
+                        .insert({ event_id: event.id, organizer_id: organizer.id, sponsor_id: profile.id });
+                      if (error) { toast.error(error.message); return; }
+                      // Fetch the newly created conversation
+                      const { data } = await supabase
+                        .from("conversations")
+                        .select("id")
+                        .eq("event_id", event.id)
+                        .eq("sponsor_id", profile.id)
+                        .single();
+                      if (data) navigate(`/messages?conversation=${data.id}`);
                     }}
                   >
                     <MessageSquare className="h-4 w-4 mr-2" /> Ir al chat

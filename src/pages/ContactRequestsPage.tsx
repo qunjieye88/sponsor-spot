@@ -67,15 +67,14 @@ export default function ContactRequestsPage() {
     }
 
     if (action === "accepted" && req.event && req.sponsor) {
-      // Create conversation
-      const { data: conv, error: convError } = await supabase
+      // Create conversation (insert without RETURNING to avoid RLS SELECT conflict)
+      const { error: convError } = await supabase
         .from("conversations")
         .insert({
           event_id: req.event_id,
           organizer_id: req.organizer_id,
           sponsor_id: req.sponsor_id,
-        })
-        .select().single();
+        });
 
       if (convError) {
         toast.error(convError.message);
