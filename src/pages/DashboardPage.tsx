@@ -400,7 +400,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredEvents.map((event, i) => (
+            {sortedEvents.map((event, i) => (
               <div
                 key={event.id}
                 className="animate-slide-up"
