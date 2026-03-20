@@ -60,15 +60,6 @@ export function Navbar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
-          {profile?.role === "organizer" && (
-            <Button
-              onClick={() => navigate("/events/new")}
-              size="sm"
-              className="gradient-primary text-white border-0 rounded-pill"
-            >
-              <Plus className="h-4 w-4 mr-1" /> Nuevo Evento
-            </Button>
-          )}
           <Link
             to="/profile"
             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
