@@ -388,7 +388,7 @@ export default function DashboardPage() {
               <div key={i} className="bg-card rounded-xl h-80 animate-pulse" />
             ))}
           </div>
-        ) : filteredEvents.length === 0 ? (
+        ) : sortedEvents.length === 0 ? (
           <div className="text-center py-16 animate-fade-in">
             <CalendarDays className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
             <h3 className="font-semibold text-lg">No hay eventos todavía</h3>
