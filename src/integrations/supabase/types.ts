@@ -240,6 +240,9 @@ export type Database = {
           industry: string | null
           name: string
           preferred_activations: string[] | null
+          preferred_audiences: string[] | null
+          preferred_event_types: string[] | null
+          preferred_sectors: string[] | null
           rating: number | null
           role: Database["public"]["Enums"]["app_role"]
           social_links: string[] | null
@@ -260,6 +263,9 @@ export type Database = {
           industry?: string | null
           name?: string
           preferred_activations?: string[] | null
+          preferred_audiences?: string[] | null
+          preferred_event_types?: string[] | null
+          preferred_sectors?: string[] | null
           rating?: number | null
           role: Database["public"]["Enums"]["app_role"]
           social_links?: string[] | null
@@ -280,6 +286,9 @@ export type Database = {
           industry?: string | null
           name?: string
           preferred_activations?: string[] | null
+          preferred_audiences?: string[] | null
+          preferred_event_types?: string[] | null
+          preferred_sectors?: string[] | null
           rating?: number | null
           role?: Database["public"]["Enums"]["app_role"]
           social_links?: string[] | null
