@@ -89,6 +89,22 @@ const App = () => (
               }
             />
             <Route
+              path="/organizers/:id"
+              element={
+                <RequireProfile>
+                  <OrganizerProfilePage />
+                </RequireProfile>
+              }
+            />
+            <Route
+              path="/contact-requests"
+              element={
+                <RequireProfile>
+                  <ContactRequestsPage />
+                </RequireProfile>
+              }
+            />
+            <Route
               path="/profile"
               element={
                 <RequireProfile>

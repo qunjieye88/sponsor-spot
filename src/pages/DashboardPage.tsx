@@ -130,11 +130,6 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <SendOfferDialog
-        event={offerEvent}
-        open={!!offerEvent}
-        onOpenChange={(open) => { if (!open) setOfferEvent(null); }}
-      />
     </DashboardLayout>
   );
 }

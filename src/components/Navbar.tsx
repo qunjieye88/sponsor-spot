@@ -27,10 +27,12 @@ export function Navbar() {
     ? [
         { label: "Mis Eventos", href: "/dashboard", icon: CalendarDays },
         { label: "Buscar Sponsors", href: "/sponsors", icon: Search },
+        { label: "Solicitudes", href: "/contact-requests", icon: Inbox },
         { label: "Mensajes", href: "/messages", icon: MessageSquare },
       ]
     : [
         { label: "Explorar Eventos", href: "/dashboard", icon: Search },
+        { label: "Solicitudes", href: "/contact-requests", icon: Inbox },
         { label: "Mensajes", href: "/messages", icon: MessageSquare },
       ];
 
