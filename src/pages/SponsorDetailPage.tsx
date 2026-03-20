@@ -243,7 +243,8 @@ export default function SponsorDetailPage() {
                 const hasConv = !!existingConvs[event.id];
                 const reqStatus = existingRequests[event.id];
                 const isSending = sendingEvent === event.id;
-                const isDisabled = hasConv || !!reqStatus || isSending;
+                const isLocked = !!lockedEvents[event.id];
+                const isDisabled = hasConv || !!reqStatus || isSending || isLocked;
 
                 let statusLabel = "";
                 let statusIcon = <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />;
@@ -254,6 +255,8 @@ export default function SponsorDetailPage() {
                 } else if (reqStatus) {
                   statusLabel = reqStatus === "pending" ? "Pendiente" : reqStatus === "accepted" ? "Aceptado" : "Rechazado";
                   statusIcon = <CheckCircle2 className="h-4 w-4 shrink-0 text-muted-foreground" />;
+                } else if (isSending || isLocked) {
+                  statusLabel = "Enviando...";
                 }
 
                 return (
