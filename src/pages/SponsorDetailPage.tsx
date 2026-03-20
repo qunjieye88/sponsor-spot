@@ -6,7 +6,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { MatchBadge } from "@/components/MatchBadge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ArrowLeft, Building2, DollarSign, Tag, MessageSquare, Globe, Briefcase, Zap } from "lucide-react";
+import { ArrowLeft, Building2, DollarSign, Tag, MessageSquare, Globe, Briefcase, Zap, CheckCircle2 } from "lucide-react";
 import type { Profile, Event } from "@/lib/supabase-helpers";
 import { calculateMatchScore } from "@/lib/supabase-helpers";
 
