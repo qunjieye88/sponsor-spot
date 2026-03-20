@@ -212,24 +212,36 @@ export default function SponsorDetailPage() {
               <h2 className="text-sm font-semibold text-muted-foreground">Contactar sobre evento</h2>
               {events.map((event) => {
                 const hasConv = !!existingConvs[event.id];
+                const reqStatus = existingRequests[event.id];
+                const isSending = sendingEvent === event.id;
+                const isDisabled = hasConv || !!reqStatus || isSending;
+
+                let statusLabel = "";
+                let statusIcon = <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />;
+
+                if (hasConv) {
+                  statusLabel = "Contactado";
+                  statusIcon = <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />;
+                } else if (reqStatus) {
+                  statusLabel = reqStatus === "pending" ? "Pendiente" : reqStatus === "accepted" ? "Aceptado" : "Rechazado";
+                  statusIcon = <CheckCircle2 className="h-4 w-4 shrink-0 text-muted-foreground" />;
+                }
+
                 return (
                   <button
                     key={event.id}
+                    disabled={isDisabled}
                     className={`w-full flex items-center gap-2 px-4 py-2 rounded-full border transition-colors text-sm ${
-                      hasConv
-                        ? "border-primary/30 bg-primary/5 text-muted-foreground cursor-default"
+                      isDisabled
+                        ? "border-primary/30 bg-primary/5 text-muted-foreground cursor-default opacity-70"
                         : "border-border bg-card hover:bg-accent/50"
                     }`}
                     onClick={() => startConversation(event)}
                   >
-                    {hasConv ? (
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                    ) : (
-                      <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    )}
+                    {statusIcon}
                     <span className="truncate">{event.title}</span>
-                    {hasConv && (
-                      <span className="text-xs text-primary font-medium whitespace-nowrap">Contactado</span>
+                    {statusLabel && (
+                      <span className="text-xs text-primary font-medium whitespace-nowrap">{statusLabel}</span>
                     )}
                     <div className="ml-auto shrink-0">
                       <MatchBadge score={calculateMatchScore(event, sponsor)} size="xs" hideLabel />
