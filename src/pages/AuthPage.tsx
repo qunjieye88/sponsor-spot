@@ -141,7 +141,7 @@ export default function AuthPage() {
                   />
                 </div>
               </div>
-            )
+            )}
 
             <Button
               type="submit"
