@@ -128,7 +128,7 @@ export default function DashboardPage() {
     if (locationFilter && locationFilter !== "all" && e.location !== locationFilter) return false;
 
     // Capacity
-    if (capacityFilter) {
+    if (capacityFilter && capacityFilter !== "any") {
       const max = parseInt(capacityFilter);
       if ((e.capacity ?? 0) >= max) return false;
     }
