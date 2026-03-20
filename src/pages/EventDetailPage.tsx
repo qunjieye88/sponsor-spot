@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
   CalendarDays, MapPin, Users, ArrowLeft, User,
-  CheckCircle2, Send, Shield, MessageSquare, Loader2, Check,
+  CheckCircle2, Send, Shield, MessageSquare, Loader2, Check, X, Building2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Event, Profile, ContactRequest } from "@/lib/supabase-helpers";
-import { calculateMatchScore } from "@/lib/supabase-helpers";
+import { calculateMatchScore, getMatchBreakdown } from "@/lib/supabase-helpers";
 
 const mockPackages = [
   { name: "Gold", benefits: ["Logo en escenario principal", "Stand 6x3m", "10 pases VIP", "Mención en RRSS"] },
@@ -37,6 +37,7 @@ export default function EventDetailPage() {
   const navigate = useNavigate();
   const [event, setEvent] = useState<Event | null>(null);
   const [organizer, setOrganizer] = useState<Profile | null>(null);
+  const [confirmedSponsorProfiles, setConfirmedSponsorProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [contactRequest, setContactRequest] = useState<ContactRequest | null>(null);
   const [sendingRequest, setSendingRequest] = useState(false);
@@ -46,14 +47,26 @@ export default function EventDetailPage() {
     supabase.from("events").select("*").eq("id", id).single().then(({ data }) => {
       setEvent(data);
       if (data) {
-        Promise.all([
-          supabase.from("profiles").select("*").eq("id", data.organizer_id).single(),
-          profile?.role === "sponsor"
-            ? supabase.from("contact_requests").select("*").eq("event_id", id).eq("sponsor_id", profile.id).maybeSingle()
-            : Promise.resolve({ data: null }),
-        ]).then(([orgRes, reqRes]) => {
+        const orgPromise = supabase.from("profiles").select("*").eq("id", data.organizer_id).single();
+        const reqPromise = profile?.role === "sponsor"
+          ? supabase.from("contact_requests").select("*").eq("event_id", id).eq("sponsor_id", profile.id).maybeSingle()
+          : Promise.resolve({ data: null, error: null });
+        const sponsorsPromise = (data.confirmed_sponsors && data.confirmed_sponsors.length > 0)
+          ? supabase.from("profiles").select("*").eq("role", "sponsor")
+          : Promise.resolve({ data: null, error: null });
+
+        Promise.all([orgPromise, reqPromise, sponsorsPromise]).then(([orgRes, reqRes, sponsorsRes]) => {
           setOrganizer(orgRes.data);
           setContactRequest((reqRes as any).data || null);
+
+          if (sponsorsRes?.data && data.confirmed_sponsors) {
+            const names = data.confirmed_sponsors.map((n: string) => n.toLowerCase());
+            const matched = (sponsorsRes.data as Profile[]).filter(p =>
+              names.some((n: string) => p.name.toLowerCase().includes(n) || n.includes(p.name.toLowerCase()))
+            );
+            setConfirmedSponsorProfiles(matched);
+          }
+
           setLoading(false);
         });
       } else {
@@ -127,10 +140,10 @@ export default function EventDetailPage() {
   }
 
   const matchScore = profile?.role === "sponsor" ? calculateMatchScore(event, profile) : null;
+  const matchBreakdown = profile?.role === "sponsor" ? getMatchBreakdown(event, profile) : null;
   const confirmedCount = event.confirmed_sponsors?.length || 0;
   const requestStatus = contactRequest?.status;
 
-  // Detail grid items
   const details = [
     { label: "Tipo", value: event.type },
     { label: "Sector", value: event.sector },
@@ -145,14 +158,6 @@ export default function EventDetailPage() {
     { label: "Estado", value: event.published ? "Abierto" : "Borrador" },
   ].filter(d => d.value);
 
-  // Match breakdown for sidebar
-  const matchBreakdown = matchScore !== null ? [
-    { label: "Audiencia", compatible: !!(event.audience && profile?.tags?.length) },
-    { label: "Sector", compatible: !!(event.sector && profile?.industry && event.sector.toLowerCase() === profile.industry.toLowerCase()) },
-    { label: "Presupuesto", compatible: !!(profile?.budget_min != null && profile?.budget_max != null && event.sponsorship_min != null && event.sponsorship_max != null) },
-  ] : null;
-
-  // Tags from confirmed sponsors / sector / audience
   const tags = [
     ...(event.sector ? [event.sector.toLowerCase()] : []),
     ...(event.type ? [event.type.toLowerCase()] : []),
@@ -162,14 +167,13 @@ export default function EventDetailPage() {
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto animate-slide-up space-y-0">
-        {/* Hero — full-width cover */}
+        {/* Hero */}
         <div className="relative h-[340px] md:h-[420px] rounded-t-2xl overflow-hidden">
           {event.media && event.media.length > 0 ? (
             <img src={event.media[0]} alt={event.title} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full gradient-primary" />
           )}
-          {/* Overlay content */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 px-6 md:px-10 pb-8 space-y-3">
             <button
@@ -206,9 +210,8 @@ export default function EventDetailPage() {
 
         {/* Two-column layout */}
         <div className="flex flex-col lg:flex-row gap-6 mt-0">
-          {/* Left column — main content */}
+          {/* Left column */}
           <div className="flex-1 space-y-8 py-8">
-            {/* Description */}
             {event.description && (
               <div className="space-y-2">
                 <h2 className="text-xl font-bold">Descripción</h2>
@@ -216,7 +219,6 @@ export default function EventDetailPage() {
               </div>
             )}
 
-            {/* Details grid */}
             {details.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-xl font-bold">Detalles del Evento</h2>
@@ -263,7 +265,47 @@ export default function EventDetailPage() {
               </div>
             )}
 
-            {/* Tags */}
+            {/* Confirmed Sponsors */}
+            {(confirmedSponsorProfiles.length > 0 || (event.confirmed_sponsors && event.confirmed_sponsors.length > 0)) && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold">Sponsors Confirmados</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {confirmedSponsorProfiles.length > 0
+                    ? confirmedSponsorProfiles.map((sp) => (
+                        <Link
+                          key={sp.id}
+                          to={`/sponsors/${sp.id}`}
+                          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
+                        >
+                          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            {sp.avatar_url ? (
+                              <img src={sp.avatar_url} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                            ) : (
+                              <Building2 className="h-5 w-5 text-primary" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm">{sp.name}</p>
+                            {sp.industry && (
+                              <p className="text-xs text-muted-foreground">{sp.industry}</p>
+                            )}
+                          </div>
+                          {sp.verified && <Shield className="h-4 w-4 text-emerald-500 ml-auto shrink-0" />}
+                        </Link>
+                      ))
+                    : event.confirmed_sponsors?.map((name) => (
+                        <div key={name} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+                          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                            <Building2 className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <p className="font-semibold text-sm">{name}</p>
+                        </div>
+                      ))
+                  }
+                </div>
+              </div>
+            )}
+
             {tags.length > 0 && (
               <div className="space-y-3">
                 <h2 className="text-xl font-bold">Tags</h2>
@@ -277,7 +319,6 @@ export default function EventDetailPage() {
               </div>
             )}
 
-            {/* Organizer */}
             {organizer && (
               <div className="space-y-3">
                 <h2 className="text-xl font-bold">Organizador</h2>
@@ -295,27 +336,22 @@ export default function EventDetailPage() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-semibold">{organizer.name}</p>
-                      {organizer.verified && (
-                        <Shield className="h-4 w-4 text-emerald-500" />
-                      )}
+                      {organizer.verified && <Shield className="h-4 w-4 text-emerald-500" />}
                     </div>
-                    {organizer.industry && (
-                      <p className="text-sm text-muted-foreground">{organizer.industry}</p>
-                    )}
+                    {organizer.industry && <p className="text-sm text-muted-foreground">{organizer.industry}</p>}
                   </div>
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Right sidebar — sticky */}
+          {/* Right sidebar */}
           {profile?.role === "sponsor" && (
             <div className="lg:w-[340px] shrink-0 py-8">
               <div className="lg:sticky lg:top-6 space-y-4">
                 {/* Match Score card */}
-                {matchScore !== null && (
+                {matchScore !== null && matchBreakdown && (
                   <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-                    {/* Circular score */}
                     <div className="flex flex-col items-center gap-2">
                       <div className="relative h-28 w-28">
                         <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
@@ -339,19 +375,26 @@ export default function EventDetailPage() {
                       </p>
                     </div>
 
-                    {/* Breakdown */}
-                    {matchBreakdown && (
-                      <div className="space-y-2 pt-2 border-t border-border">
-                        {matchBreakdown.map((item) => (
-                          <div key={item.label} className="flex items-center justify-between text-sm">
+                    {/* Detailed breakdown */}
+                    <div className="space-y-3 pt-2 border-t border-border">
+                      {matchBreakdown.map((item) => (
+                        <div key={item.label} className="space-y-1">
+                          <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">{item.label}</span>
-                            <span className="flex items-center gap-1 text-emerald-500 font-medium text-xs">
-                              <Check className="h-3.5 w-3.5" /> Compatible
+                            <span className={`flex items-center gap-1 text-xs font-medium ${item.compatible ? "text-emerald-500" : "text-destructive"}`}>
+                              {item.compatible ? (
+                                <><Check className="h-3.5 w-3.5" /> Compatible</>
+                              ) : (
+                                <><X className="h-3.5 w-3.5" /> No compatible</>
+                              )}
                             </span>
                           </div>
-                        ))}
-                      </div>
-                    )}
+                          <p className="text-xs text-muted-foreground/80 leading-snug">
+                            {item.reason}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
