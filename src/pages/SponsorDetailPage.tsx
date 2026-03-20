@@ -191,9 +191,9 @@ export default function SponsorDetailPage() {
                 >
                   <MessageSquare className="h-4 w-4 mr-2 shrink-0" />
                   <span className="truncate">{event.title}</span>
-                  <div className="ml-auto shrink-0 flex items-center justify-center">
-                    <MatchBadge score={calculateMatchScore(event, sponsor)} size="sm" className="!flex-row !gap-1.5 [&>div]:h-8 [&>div]:w-8" />
-                  </div>
+                  <span className="ml-auto shrink-0 inline-flex items-center justify-center h-9 w-9 rounded-full border-2 border-primary text-xs font-bold tabular-nums text-primary">
+                    {calculateMatchScore(event, sponsor)}%
+                  </span>
                 </Button>
               ))}
             </div>
