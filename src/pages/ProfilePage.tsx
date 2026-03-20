@@ -47,6 +47,9 @@ export default function ProfilePage() {
       updates.budget_min = parseInt(budgetMin) || 0;
       updates.budget_max = parseInt(budgetMax) || 0;
       updates.preferred_activations = activations.split(",").map(s => s.trim()).filter(Boolean);
+      updates.preferred_sectors = preferredSectors.split(",").map(s => s.trim()).filter(Boolean);
+      updates.preferred_audiences = preferredAudiences.split(",").map(s => s.trim()).filter(Boolean);
+      updates.preferred_event_types = preferredEventTypes.split(",").map(s => s.trim()).filter(Boolean);
     }
 
     const { data, error } = await supabase
