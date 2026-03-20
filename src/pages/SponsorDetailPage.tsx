@@ -65,22 +65,11 @@ export default function SponsorDetailPage() {
       return;
     }
 
-    // If already contacted in this session, navigate
-    if (contactedEvents.has(event.id)) return;
+    // If already requested, do nothing
+    if (existingRequests[event.id]) return;
+    if (sendingEvent) return;
 
-    const { data: existing } = await supabase
-      .from("conversations")
-      .select("id")
-      .eq("event_id", event.id)
-      .eq("organizer_id", profile.id)
-      .eq("sponsor_id", sponsor.id)
-      .maybeSingle();
-
-    if (existing) {
-      setExistingConvs((prev) => ({ ...prev, [event.id]: existing.id }));
-      navigate(`/messages?conversation=${existing.id}`);
-      return;
-    }
+    setSendingEvent(event.id);
 
     const { data, error } = await supabase
       .from("conversations")
@@ -92,9 +81,9 @@ export default function SponsorDetailPage() {
       toast.error(error.message);
     } else {
       setExistingConvs((prev) => ({ ...prev, [event.id]: data.id }));
-      setContactedEvents((prev) => new Set(prev).add(event.id));
       navigate(`/messages?conversation=${data.id}`);
     }
+    setSendingEvent(null);
   };
 
   if (loading) {
