@@ -18,7 +18,8 @@ export default function SponsorDetailPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [existingConvs, setExistingConvs] = useState<Record<string, string>>({});
-  const [contactedEvents, setContactedEvents] = useState<Set<string>>(new Set());
+  const [existingRequests, setExistingRequests] = useState<Record<string, string>>({});
+  const [sendingEvent, setSendingEvent] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
