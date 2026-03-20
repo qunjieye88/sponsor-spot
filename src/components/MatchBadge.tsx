@@ -1,21 +1,24 @@
 interface MatchBadgeProps {
   score: number;
-  size?: "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg";
   className?: string;
+  hideLabel?: boolean;
 }
 
-export function MatchBadge({ score, size = "md", className }: MatchBadgeProps) {
+export function MatchBadge({ score, size = "md", className, hideLabel }: MatchBadgeProps) {
   const isStrong = score >= 85;
   const circumference = 2 * Math.PI * 18;
   const offset = circumference - (score / 100) * circumference;
 
   const sizeMap = {
+    xs: "h-9 w-9",
     sm: "h-12 w-12",
     md: "h-16 w-16",
     lg: "h-20 w-20",
   };
 
   const textSize = {
+    xs: "text-[10px]",
     sm: "text-xs",
     md: "text-sm",
     lg: "text-base",
@@ -50,7 +53,7 @@ export function MatchBadge({ score, size = "md", className }: MatchBadgeProps) {
           {score}%
         </span>
       </div>
-      {isStrong && (
+      {isStrong && !hideLabel && (
         <span className="px-2 py-0.5 rounded-pill bg-primary/10 text-primary text-xs font-semibold">
           Strong Match
         </span>

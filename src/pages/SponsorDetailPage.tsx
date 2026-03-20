@@ -183,18 +183,17 @@ export default function SponsorDetailPage() {
             <div className="space-y-2 pt-2">
               <h2 className="text-sm font-semibold text-muted-foreground">Contactar sobre evento</h2>
               {events.map((event) => (
-                <Button
+                <button
                   key={event.id}
-                  variant="outline"
-                  className="w-full rounded-pill justify-start items-center"
+                  className="w-full flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-card hover:bg-accent/50 transition-colors text-sm"
                   onClick={() => startConversation(event)}
                 >
-                  <MessageSquare className="h-4 w-4 mr-2 shrink-0" />
+                  <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <span className="truncate">{event.title}</span>
-                  <span className="ml-auto shrink-0 inline-flex items-center justify-center h-9 w-9 rounded-full border-2 border-primary text-xs font-bold tabular-nums text-primary">
-                    {calculateMatchScore(event, sponsor)}%
-                  </span>
-                </Button>
+                  <div className="ml-auto shrink-0">
+                    <MatchBadge score={calculateMatchScore(event, sponsor)} size="xs" hideLabel />
+                  </div>
+                </button>
               ))}
             </div>
           )}
