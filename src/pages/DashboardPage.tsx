@@ -158,6 +158,20 @@ export default function DashboardPage() {
     return true;
   });
 
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="animate-fade-in">
+          <h1 className="text-2xl font-bold">
+            {profile?.role === "organizer" ? "Mis Eventos" : "Explorar Eventos"}
+          </h1>
+          <p className="text-muted-foreground">
+            {profile?.role === "organizer"
+              ? "Gestiona y publica tus eventos"
+              : "Encuentra eventos para patrocinar"}
+          </p>
+        </div>
 
         {/* Search + Filters toggle */}
         <div className="flex gap-3 items-center animate-slide-up" style={{ animationDelay: "0.15s", animationFillMode: "both" }}>
