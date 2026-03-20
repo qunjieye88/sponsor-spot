@@ -53,6 +53,16 @@ export default function SponsorDetailPage() {
 
   const startConversation = async (event: Event) => {
     if (!profile || !sponsor) return;
+
+    // If conversation already exists, navigate to it
+    if (existingConvs[event.id]) {
+      navigate(`/messages?conversation=${existingConvs[event.id]}`);
+      return;
+    }
+
+    // If already contacted in this session, navigate
+    if (contactedEvents.has(event.id)) return;
+
     const { data: existing } = await supabase
       .from("conversations")
       .select("id")
@@ -62,6 +72,7 @@ export default function SponsorDetailPage() {
       .maybeSingle();
 
     if (existing) {
+      setExistingConvs((prev) => ({ ...prev, [event.id]: existing.id }));
       navigate(`/messages?conversation=${existing.id}`);
       return;
     }
@@ -72,8 +83,13 @@ export default function SponsorDetailPage() {
       .select()
       .single();
 
-    if (error) toast.error(error.message);
-    else navigate(`/messages?conversation=${data.id}`);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      setExistingConvs((prev) => ({ ...prev, [event.id]: data.id }));
+      setContactedEvents((prev) => new Set(prev).add(event.id));
+      navigate(`/messages?conversation=${data.id}`);
+    }
   };
 
   if (loading) {
