@@ -20,6 +20,7 @@ export default function SponsorDetailPage() {
   const [existingConvs, setExistingConvs] = useState<Record<string, string>>({});
   const [existingRequests, setExistingRequests] = useState<Record<string, string>>({});
   const [sendingEvent, setSendingEvent] = useState<string | null>(null);
+  const [lockedEvents, setLockedEvents] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,57 +34,85 @@ export default function SponsorDetailPage() {
       const evts = (eventsRes.data as Event[]) || [];
       setEvents(evts);
 
-      // Check existing conversations and contact requests
       if (profile && id && evts.length > 0) {
         const [convsRes, reqsRes] = await Promise.all([
           supabase.from("conversations").select("id, event_id").eq("organizer_id", profile.id).eq("sponsor_id", id),
           supabase.from("contact_requests").select("id, event_id, status").eq("organizer_id", profile.id).eq("sponsor_id", id),
         ]);
+
         if (convsRes.data) {
           const map: Record<string, string> = {};
-          convsRes.data.forEach((c) => { map[c.event_id] = c.id; });
+          convsRes.data.forEach((c) => {
+            map[c.event_id] = c.id;
+          });
           setExistingConvs(map);
         }
+
         if (reqsRes.data) {
           const map: Record<string, string> = {};
-          reqsRes.data.forEach((r) => { map[r.event_id] = r.status; });
+          reqsRes.data.forEach((r) => {
+            map[r.event_id] = r.status;
+          });
           setExistingRequests(map);
         }
       }
 
       setLoading(false);
     };
+
     if (id) fetchData();
   }, [id, profile]);
 
   const startConversation = async (event: Event) => {
-    if (!profile || !sponsor) return;
+    if (!profile || !sponsor || sendingEvent || lockedEvents[event.id]) return;
 
-    // If conversation already exists, navigate to it
     if (existingConvs[event.id]) {
       navigate(`/messages?conversation=${existingConvs[event.id]}`);
       return;
     }
 
-    // If already requested, do nothing
     if (existingRequests[event.id]) return;
-    if (sendingEvent) return;
 
     setSendingEvent(event.id);
+    setLockedEvents((prev) => ({ ...prev, [event.id]: true }));
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("conversations")
-      .insert({ event_id: event.id, organizer_id: profile.id, sponsor_id: sponsor.id })
-      .select()
-      .single();
+      .insert({
+        event_id: event.id,
+        organizer_id: profile.id,
+        sponsor_id: sponsor.id,
+      });
 
     if (error) {
       toast.error(error.message);
-    } else {
-      setExistingConvs((prev) => ({ ...prev, [event.id]: data.id }));
-      navigate(`/messages?conversation=${data.id}`);
+      setSendingEvent(null);
+      setLockedEvents((prev) => {
+        const next = { ...prev };
+        delete next[event.id];
+        return next;
+      });
+      return;
     }
-    setSendingEvent(null);
+
+    const { data: createdConversation, error: fetchError } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("event_id", event.id)
+      .eq("organizer_id", profile.id)
+      .eq("sponsor_id", sponsor.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchError || !createdConversation) {
+      toast.error(fetchError?.message || "No se pudo abrir la conversación");
+      setSendingEvent(null);
+      return;
+    }
+
+    setExistingConvs((prev) => ({ ...prev, [event.id]: createdConversation.id }));
+    navigate(`/messages?conversation=${createdConversation.id}`);
   };
 
   if (loading) {
@@ -214,7 +243,8 @@ export default function SponsorDetailPage() {
                 const hasConv = !!existingConvs[event.id];
                 const reqStatus = existingRequests[event.id];
                 const isSending = sendingEvent === event.id;
-                const isDisabled = hasConv || !!reqStatus || isSending;
+                const isLocked = !!lockedEvents[event.id];
+                const isDisabled = hasConv || !!reqStatus || isSending || isLocked;
 
                 let statusLabel = "";
                 let statusIcon = <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />;
@@ -225,6 +255,8 @@ export default function SponsorDetailPage() {
                 } else if (reqStatus) {
                   statusLabel = reqStatus === "pending" ? "Pendiente" : reqStatus === "accepted" ? "Aceptado" : "Rechazado";
                   statusIcon = <CheckCircle2 className="h-4 w-4 shrink-0 text-muted-foreground" />;
+                } else if (isSending || isLocked) {
+                  statusLabel = "Enviando...";
                 }
 
                 return (
