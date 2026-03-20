@@ -259,7 +259,26 @@ export default function DashboardPage() {
         {/* Advanced filters */}
         {showAdvanced && (
           <div className="bg-card rounded-2xl shadow-card p-6 space-y-4 animate-fade-in">
-            <h3 className="font-semibold text-sm">Filtros avanzados</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-sm">Filtros avanzados</h3>
+              {(locationFilter || capacityFilter || budgetFilter || statusFilter || dateFrom || dateTo) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground hover:text-destructive"
+                  onClick={() => {
+                    setLocationFilter("");
+                    setCapacityFilter("");
+                    setBudgetFilter("");
+                    setStatusFilter("");
+                    setDateFrom(undefined);
+                    setDateTo(undefined);
+                  }}
+                >
+                  Borrar filtros
+                </Button>
+              )}
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {/* Location */}
               <div className="space-y-1.5">

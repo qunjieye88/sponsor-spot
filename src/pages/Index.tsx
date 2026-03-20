@@ -21,7 +21,7 @@ export default function Index() {
                 Iniciar sesión
               </Button>
             </Link>
-            <Link to="/auth">
+            <Link to="/auth?mode=signup">
               <Button size="sm" className="gradient-primary text-white border-0 rounded-pill">
                 Registrarse <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
@@ -46,12 +46,12 @@ export default function Index() {
               Match inteligente, comunicación directa, resultados reales.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Link to="/auth">
+              <Link to="/auth?mode=signup">
                 <Button size="lg" className="gradient-primary text-white border-0 rounded-pill h-12 px-8 font-semibold">
                   Empezar gratis <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </Link>
-              <Link to="/auth">
+              <Link to="/auth?mode=signup">
                 <Button size="lg" variant="outline" className="rounded-pill h-12 px-8">
                   Soy sponsor
                 </Button>
@@ -127,7 +127,7 @@ export default function Index() {
             <p className="text-white/80 mb-8 max-w-md mx-auto">
               Crea tu cuenta gratuita y descubre oportunidades de patrocinio en minutos.
             </p>
-            <Link to="/auth">
+            <Link to="/auth?mode=signup">
               <Button size="lg" className="bg-white text-foreground hover:bg-white/90 rounded-pill h-12 px-8 font-semibold">
                 Crear cuenta gratis <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
