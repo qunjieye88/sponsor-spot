@@ -212,6 +212,19 @@ export default function DashboardPage() {
             <SlidersHorizontal className="h-4 w-4" />
             Filtros
           </Button>
+          {profile?.role === "sponsor" && (
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[180px] shrink-0">
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Ordenar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="recent">Más recientes</SelectItem>
+                <SelectItem value="match">Mayor afinidad</SelectItem>
+                <SelectItem value="date">Fecha del evento</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {/* Type pills */}
