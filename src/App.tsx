@@ -79,6 +79,14 @@ const App = () => (
               }
             />
             <Route
+              path="/sponsors/:id"
+              element={
+                <RequireProfile>
+                  <SponsorDetailPage />
+                </RequireProfile>
+              }
+            />
+            <Route
               path="/profile"
               element={
                 <RequireProfile>

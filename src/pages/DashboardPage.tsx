@@ -6,7 +6,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { EventCard } from "@/components/EventCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, CalendarDays, TrendingUp, Users } from "lucide-react";
+import { Search, CalendarDays, TrendingUp, Users } from "lucide-react";
 import type { Event } from "@/lib/supabase-helpers";
 
 export default function DashboardPage() {
