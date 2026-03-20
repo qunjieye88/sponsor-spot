@@ -216,19 +216,33 @@ export default function SponsorDetailPage() {
           {profile?.role === "organizer" && events.length > 0 && (
             <div className="space-y-2 pt-2">
               <h2 className="text-sm font-semibold text-muted-foreground">Contactar sobre evento</h2>
-              {events.map((event) => (
-                <button
-                  key={event.id}
-                  className="w-full flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-card hover:bg-accent/50 transition-colors text-sm"
-                  onClick={() => startConversation(event)}
-                >
-                  <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <span className="truncate">{event.title}</span>
-                  <div className="ml-auto shrink-0">
-                    <MatchBadge score={calculateMatchScore(event, sponsor)} size="xs" hideLabel />
-                  </div>
-                </button>
-              ))}
+              {events.map((event) => {
+                const hasConv = !!existingConvs[event.id];
+                return (
+                  <button
+                    key={event.id}
+                    className={`w-full flex items-center gap-2 px-4 py-2 rounded-full border transition-colors text-sm ${
+                      hasConv
+                        ? "border-primary/30 bg-primary/5 text-muted-foreground cursor-default"
+                        : "border-border bg-card hover:bg-accent/50"
+                    }`}
+                    onClick={() => startConversation(event)}
+                  >
+                    {hasConv ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+                    ) : (
+                      <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <span className="truncate">{event.title}</span>
+                    {hasConv && (
+                      <span className="text-xs text-primary font-medium whitespace-nowrap">Contactado</span>
+                    )}
+                    <div className="ml-auto shrink-0">
+                      <MatchBadge score={calculateMatchScore(event, sponsor)} size="xs" hideLabel />
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
