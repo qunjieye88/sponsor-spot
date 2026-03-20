@@ -1,6 +1,7 @@
 interface MatchBadgeProps {
   score: number;
   size?: "sm" | "md" | "lg";
+  className?: string;
 }
 
 export function MatchBadge({ score, size = "md" }: MatchBadgeProps) {
