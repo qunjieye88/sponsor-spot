@@ -52,7 +52,7 @@ export function MatchBadge({ score, size = "md", className, hideLabel }: MatchBa
           {score}%
         </span>
       </div>
-      {isStrong && (
+      {isStrong && !hideLabel && (
         <span className="px-2 py-0.5 rounded-pill bg-primary/10 text-primary text-xs font-semibold">
           Strong Match
         </span>
