@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,15 +8,23 @@ import { toast } from "sonner";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const [isLogin, setIsLogin] = useState(searchParams.get("mode") !== "signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    if (!isLogin && password !== confirmPassword) {
+      toast.error("Las contraseñas no coinciden");
+      setLoading(false);
+      return;
+    }
 
     if (isLogin) {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -25,7 +33,6 @@ export default function AuthPage() {
         setLoading(false);
         return;
       }
-      // Use the user from signIn response directly — no extra getUser call
       const userId = data.user?.id;
       if (userId) {
         const { data: profile } = await supabase
