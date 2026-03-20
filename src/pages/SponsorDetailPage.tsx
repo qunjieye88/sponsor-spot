@@ -17,6 +17,8 @@ export default function SponsorDetailPage() {
   const [sponsor, setSponsor] = useState<Profile | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [existingConvs, setExistingConvs] = useState<Record<string, string>>({});
+  const [contactedEvents, setContactedEvents] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,7 +29,23 @@ export default function SponsorDetailPage() {
           : Promise.resolve({ data: [] as Event[], error: null }),
       ]);
       setSponsor(sponsorRes.data);
-      setEvents((eventsRes.data as Event[]) || []);
+      const evts = (eventsRes.data as Event[]) || [];
+      setEvents(evts);
+
+      // Check existing conversations for each event
+      if (profile && id && evts.length > 0) {
+        const { data: convs } = await supabase
+          .from("conversations")
+          .select("id, event_id")
+          .eq("organizer_id", profile.id)
+          .eq("sponsor_id", id);
+        if (convs) {
+          const map: Record<string, string> = {};
+          convs.forEach((c) => { map[c.event_id] = c.id; });
+          setExistingConvs(map);
+        }
+      }
+
       setLoading(false);
     };
     if (id) fetchData();
