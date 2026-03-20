@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { EventCard } from "@/components/EventCard";
-import { SendOfferDialog } from "@/components/SendOfferDialog";
 import { Input } from "@/components/ui/input";
 import { Search, CalendarDays, TrendingUp, Users } from "lucide-react";
 import type { Event } from "@/lib/supabase-helpers";
@@ -13,7 +12,6 @@ export default function DashboardPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [offerEvent, setOfferEvent] = useState<Event | null>(null);
 
   useEffect(() => {
     fetchEvents();
