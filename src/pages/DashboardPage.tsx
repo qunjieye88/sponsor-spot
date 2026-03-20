@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Search, CalendarDays, TrendingUp, Users, SlidersHorizontal, CalendarIcon } from "lucide-react";
+import { Search, CalendarDays, SlidersHorizontal, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -158,16 +158,6 @@ export default function DashboardPage() {
     return true;
   });
 
-  const stats = profile?.role === "organizer"
-    ? [
-        { label: "Mis Eventos", value: events.length, icon: CalendarDays },
-        { label: "Publicados", value: events.filter((e) => e.published).length, icon: TrendingUp },
-        { label: "Borradores", value: events.filter((e) => !e.published).length, icon: Users },
-      ]
-    : [
-        { label: "Eventos Disponibles", value: events.length, icon: CalendarDays },
-      ];
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -181,23 +171,6 @@ export default function DashboardPage() {
               ? "Gestiona y publica tus eventos"
               : "Encuentra eventos para patrocinar"}
           </p>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-slide-up" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>
-          {stats.map((stat) => (
-            <div key={stat.label} className="bg-card rounded-xl p-5 shadow-card">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <stat.icon className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold tabular-nums">{stat.value}</p>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
 
         {/* Search + Filters toggle */}
