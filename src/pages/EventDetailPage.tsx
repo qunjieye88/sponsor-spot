@@ -71,7 +71,7 @@ export default function EventDetailPage() {
   }, [id, profile]);
 
   const handleContactRequest = async () => {
-    if (!event || !profile || !organizer) return;
+    if (!event || !profile || !organizer || sendingRequest || contactRequest) return;
     setSendingRequest(true);
     const { data, error } = await supabase.from("contact_requests").insert({
       event_id: event.id,
@@ -81,11 +81,12 @@ export default function EventDetailPage() {
     }).select().single();
     if (error) {
       toast.error(error.message);
+      setSendingRequest(false);
     } else {
       setContactRequest(data as unknown as ContactRequest);
       toast.success("Solicitud de contacto enviada");
+      // Keep sendingRequest true — the UI will show "Solicitud pendiente" via contactRequest state
     }
-    setSendingRequest(false);
   };
 
   const handleGoToChat = async () => {
