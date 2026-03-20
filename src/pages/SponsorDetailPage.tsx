@@ -20,6 +20,7 @@ export default function SponsorDetailPage() {
   const [existingConvs, setExistingConvs] = useState<Record<string, string>>({});
   const [existingRequests, setExistingRequests] = useState<Record<string, string>>({});
   const [sendingEvent, setSendingEvent] = useState<string | null>(null);
+  const [lockedEvents, setLockedEvents] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,31 +34,37 @@ export default function SponsorDetailPage() {
       const evts = (eventsRes.data as Event[]) || [];
       setEvents(evts);
 
-      // Check existing conversations and contact requests
       if (profile && id && evts.length > 0) {
         const [convsRes, reqsRes] = await Promise.all([
           supabase.from("conversations").select("id, event_id").eq("organizer_id", profile.id).eq("sponsor_id", id),
           supabase.from("contact_requests").select("id, event_id, status").eq("organizer_id", profile.id).eq("sponsor_id", id),
         ]);
+
         if (convsRes.data) {
           const map: Record<string, string> = {};
-          convsRes.data.forEach((c) => { map[c.event_id] = c.id; });
+          convsRes.data.forEach((c) => {
+            map[c.event_id] = c.id;
+          });
           setExistingConvs(map);
         }
+
         if (reqsRes.data) {
           const map: Record<string, string> = {};
-          reqsRes.data.forEach((r) => { map[r.event_id] = r.status; });
+          reqsRes.data.forEach((r) => {
+            map[r.event_id] = r.status;
+          });
           setExistingRequests(map);
         }
       }
 
       setLoading(false);
     };
+
     if (id) fetchData();
   }, [id, profile]);
 
   const startConversation = async (event: Event) => {
-    if (!profile || !sponsor || sendingEvent) return;
+    if (!profile || !sponsor || sendingEvent || lockedEvents[event.id]) return;
 
     if (existingConvs[event.id]) {
       navigate(`/messages?conversation=${existingConvs[event.id]}`);
@@ -67,6 +74,7 @@ export default function SponsorDetailPage() {
     if (existingRequests[event.id]) return;
 
     setSendingEvent(event.id);
+    setLockedEvents((prev) => ({ ...prev, [event.id]: true }));
 
     const { error } = await supabase
       .from("conversations")
@@ -79,6 +87,11 @@ export default function SponsorDetailPage() {
     if (error) {
       toast.error(error.message);
       setSendingEvent(null);
+      setLockedEvents((prev) => {
+        const next = { ...prev };
+        delete next[event.id];
+        return next;
+      });
       return;
     }
 
