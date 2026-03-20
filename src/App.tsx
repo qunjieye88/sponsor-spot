@@ -13,6 +13,7 @@ import DashboardPage from "./pages/DashboardPage";
 import EventFormPage from "./pages/EventFormPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import SponsorsPage from "./pages/SponsorsPage";
+import SponsorDetailPage from "./pages/SponsorDetailPage";
 import ProfilePage from "./pages/ProfilePage";
 import MessagesPage from "./pages/MessagesPage";
 import NotFound from "./pages/NotFound";
@@ -74,6 +75,14 @@ const App = () => (
               element={
                 <RequireProfile>
                   <SponsorsPage />
+                </RequireProfile>
+              }
+            />
+            <Route
+              path="/sponsors/:id"
+              element={
+                <RequireProfile>
+                  <SponsorDetailPage />
                 </RequireProfile>
               }
             />

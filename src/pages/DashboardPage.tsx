@@ -6,7 +6,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { EventCard } from "@/components/EventCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, CalendarDays, TrendingUp, Users } from "lucide-react";
+import { Search, CalendarDays, TrendingUp, Users } from "lucide-react";
 import type { Event } from "@/lib/supabase-helpers";
 
 export default function DashboardPage() {
@@ -73,14 +73,6 @@ export default function DashboardPage() {
                 : "Encuentra eventos para patrocinar"}
             </p>
           </div>
-          {profile?.role === "organizer" && (
-            <Button
-              onClick={() => navigate("/events/new")}
-              className="gradient-primary text-white border-0 rounded-pill"
-            >
-              <Plus className="h-4 w-4 mr-1" /> Crear Evento
-            </Button>
-          )}
         </div>
 
         {/* Stats */}
@@ -127,14 +119,6 @@ export default function DashboardPage() {
                 ? "Crea tu primer evento para empezar"
                 : "Los organizadores aún no han publicado eventos"}
             </p>
-            {profile?.role === "organizer" && (
-              <Button
-                onClick={() => navigate("/events/new")}
-                className="mt-4 gradient-primary text-white border-0 rounded-pill"
-              >
-                <Plus className="h-4 w-4 mr-1" /> Crear Evento
-              </Button>
-            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

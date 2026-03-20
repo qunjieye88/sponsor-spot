@@ -114,7 +114,8 @@ export default function SponsorsPage() {
               return (
                 <div
                   key={sponsor.id}
-                  className="bg-card rounded-xl shadow-card p-5 space-y-4 animate-slide-up transition-all hover:shadow-card-hover"
+                  onClick={() => navigate(`/sponsors/${sponsor.id}`)}
+                  className="bg-card rounded-xl shadow-card p-5 space-y-4 animate-slide-up transition-all hover:shadow-card-hover hover:-translate-y-1 cursor-pointer active:scale-[0.98]"
                   style={{ animationDelay: `${0.05 * i}s`, animationFillMode: "both" }}
                 >
                   <div className="flex items-start justify-between">
