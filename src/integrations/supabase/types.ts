@@ -14,6 +14,61 @@ export type Database = {
   }
   public: {
     Tables: {
+      contact_requests: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          message: string | null
+          organizer_id: string
+          sponsor_id: string
+          status: Database["public"]["Enums"]["contact_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          message?: string | null
+          organizer_id: string
+          sponsor_id: string
+          status?: Database["public"]["Enums"]["contact_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          message?: string | null
+          organizer_id?: string
+          sponsor_id?: string
+          status?: Database["public"]["Enums"]["contact_request_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_requests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_requests_organizer_id_fkey"
+            columns: ["organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_requests_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string
@@ -253,6 +308,7 @@ export type Database = {
     }
     Enums: {
       app_role: "organizer" | "sponsor"
+      contact_request_status: "pending" | "accepted" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -381,6 +437,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["organizer", "sponsor"],
+      contact_request_status: ["pending", "accepted", "rejected"],
     },
   },
 } as const
