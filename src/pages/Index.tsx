@@ -21,7 +21,7 @@ export default function Index() {
                 Iniciar sesión
               </Button>
             </Link>
-            <Link to="/auth">
+            <Link to="/auth?mode=signup">
               <Button size="sm" className="gradient-primary text-white border-0 rounded-pill">
                 Registrarse <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
