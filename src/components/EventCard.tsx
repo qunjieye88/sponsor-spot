@@ -14,7 +14,6 @@ interface EventCardProps {
 
 export function EventCard({ event, sponsorProfile, organizer }: EventCardProps) {
   const navigate = useNavigate();
-  const [liked, setLiked] = useState(false);
 
   const matchScore = sponsorProfile ? calculateMatchScore(event, sponsorProfile) : null;
   const isStrongMatch = matchScore !== null && matchScore >= 80;
