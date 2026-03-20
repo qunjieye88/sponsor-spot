@@ -73,14 +73,6 @@ export default function DashboardPage() {
                 : "Encuentra eventos para patrocinar"}
             </p>
           </div>
-          {profile?.role === "organizer" && (
-            <Button
-              onClick={() => navigate("/events/new")}
-              className="gradient-primary text-white border-0 rounded-pill"
-            >
-              <Plus className="h-4 w-4 mr-1" /> Crear Evento
-            </Button>
-          )}
         </div>
 
         {/* Stats */}
