@@ -7,6 +7,18 @@ export type Conversation = Database["public"]["Tables"]["conversations"]["Row"];
 export type Message = Database["public"]["Tables"]["messages"]["Row"];
 export type AppRole = Database["public"]["Enums"]["app_role"];
 
+// Contact request type (manual since types.ts hasn't regenerated yet)
+export interface ContactRequest {
+  id: string;
+  event_id: string;
+  sponsor_id: string;
+  organizer_id: string;
+  status: "pending" | "accepted" | "rejected";
+  message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export async function getCurrentProfile() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
@@ -21,14 +33,12 @@ export function calculateMatchScore(
   let score = 0;
   let weights = 0;
 
-  // Sector match (30%)
   if (event.sector && sponsor.industry) {
     const sectorMatch = event.sector.toLowerCase() === sponsor.industry.toLowerCase() ? 1 : 0;
     score += sectorMatch * 30;
     weights += 30;
   }
 
-  // Tags overlap (25%)
   if (sponsor.tags && sponsor.tags.length > 0) {
     const eventKeywords = [
       event.sector, event.audience, event.type,
@@ -41,7 +51,6 @@ export function calculateMatchScore(
     weights += 25;
   }
 
-  // Budget match (25%)
   if (sponsor.budget_min != null && sponsor.budget_max != null && event.sponsorship_min != null && event.sponsorship_max != null) {
     const budgetOverlap = Math.max(0,
       Math.min(sponsor.budget_max, event.sponsorship_max) - Math.max(sponsor.budget_min, event.sponsorship_min)
@@ -56,7 +65,6 @@ export function calculateMatchScore(
     weights += 25;
   }
 
-  // Activations (20%)
   if (sponsor.preferred_activations && sponsor.preferred_activations.length > 0 && event.type) {
     const match = sponsor.preferred_activations.some(a =>
       a.toLowerCase().includes(event.type!.toLowerCase()) || event.type!.toLowerCase().includes(a.toLowerCase())
