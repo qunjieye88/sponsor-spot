@@ -52,19 +52,14 @@ export default function EventDetailPage() {
           ? supabase.from("contact_requests").select("*").eq("event_id", id).eq("sponsor_id", profile.id).maybeSingle()
           : Promise.resolve({ data: null, error: null });
         const sponsorsPromise = (data.confirmed_sponsors && data.confirmed_sponsors.length > 0)
-          ? supabase.from("profiles").select("*").eq("role", "sponsor")
+          ? supabase.from("profiles").select("*").in("id", data.confirmed_sponsors)
           : Promise.resolve({ data: null, error: null });
 
         Promise.all([orgPromise, reqPromise, sponsorsPromise]).then(([orgRes, reqRes, sponsorsRes]) => {
           setOrganizer(orgRes.data);
           setContactRequest((reqRes as any).data || null);
-
-          if (sponsorsRes?.data && data.confirmed_sponsors) {
-            const names = data.confirmed_sponsors.map((n: string) => n.toLowerCase());
-            const matched = (sponsorsRes.data as Profile[]).filter(p =>
-              names.some((n: string) => p.name.toLowerCase().includes(n) || n.includes(p.name.toLowerCase()))
-            );
-            setConfirmedSponsorProfiles(matched);
+          if (sponsorsRes?.data) {
+            setConfirmedSponsorProfiles(sponsorsRes.data as Profile[]);
           }
 
           setLoading(false);
@@ -266,42 +261,32 @@ export default function EventDetailPage() {
             )}
 
             {/* Confirmed Sponsors */}
-            {(confirmedSponsorProfiles.length > 0 || (event.confirmed_sponsors && event.confirmed_sponsors.length > 0)) && (
+            {confirmedSponsorProfiles.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-xl font-bold">Sponsors Confirmados</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {confirmedSponsorProfiles.length > 0
-                    ? confirmedSponsorProfiles.map((sp) => (
-                        <Link
-                          key={sp.id}
-                          to={`/sponsors/${sp.id}`}
-                          className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
-                        >
-                          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            {sp.avatar_url ? (
-                              <img src={sp.avatar_url} alt="" className="h-10 w-10 rounded-lg object-cover" />
-                            ) : (
-                              <Building2 className="h-5 w-5 text-primary" />
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-sm">{sp.name}</p>
-                            {sp.industry && (
-                              <p className="text-xs text-muted-foreground">{sp.industry}</p>
-                            )}
-                          </div>
-                          {sp.verified && <Shield className="h-4 w-4 text-emerald-500 ml-auto shrink-0" />}
-                        </Link>
-                      ))
-                    : event.confirmed_sponsors?.map((name) => (
-                        <div key={name} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-                          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                            <Building2 className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                          <p className="font-semibold text-sm">{name}</p>
-                        </div>
-                      ))
-                  }
+                  {confirmedSponsorProfiles.map((sp) => (
+                    <Link
+                      key={sp.id}
+                      to={`/sponsors/${sp.id}`}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
+                    >
+                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        {sp.avatar_url ? (
+                          <img src={sp.avatar_url} alt="" className="h-10 w-10 rounded-lg object-cover" />
+                        ) : (
+                          <Building2 className="h-5 w-5 text-primary" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm">{sp.name}</p>
+                        {sp.industry && (
+                          <p className="text-xs text-muted-foreground">{sp.industry}</p>
+                        )}
+                      </div>
+                      {sp.verified && <Shield className="h-4 w-4 text-emerald-500 ml-auto shrink-0" />}
+                    </Link>
+                  ))}
                 </div>
               </div>
             )}
