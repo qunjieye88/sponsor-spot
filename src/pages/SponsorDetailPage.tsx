@@ -57,33 +57,49 @@ export default function SponsorDetailPage() {
   }, [id, profile]);
 
   const startConversation = async (event: Event) => {
-    if (!profile || !sponsor) return;
+    if (!profile || !sponsor || sendingEvent) return;
 
-    // If conversation already exists, navigate to it
     if (existingConvs[event.id]) {
       navigate(`/messages?conversation=${existingConvs[event.id]}`);
       return;
     }
 
-    // If already requested, do nothing
     if (existingRequests[event.id]) return;
-    if (sendingEvent) return;
 
     setSendingEvent(event.id);
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("conversations")
-      .insert({ event_id: event.id, organizer_id: profile.id, sponsor_id: sponsor.id })
-      .select()
-      .single();
+      .insert({
+        event_id: event.id,
+        organizer_id: profile.id,
+        sponsor_id: sponsor.id,
+      });
 
     if (error) {
       toast.error(error.message);
-    } else {
-      setExistingConvs((prev) => ({ ...prev, [event.id]: data.id }));
-      navigate(`/messages?conversation=${data.id}`);
+      setSendingEvent(null);
+      return;
     }
-    setSendingEvent(null);
+
+    const { data: createdConversation, error: fetchError } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("event_id", event.id)
+      .eq("organizer_id", profile.id)
+      .eq("sponsor_id", sponsor.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchError || !createdConversation) {
+      toast.error(fetchError?.message || "No se pudo abrir la conversación");
+      setSendingEvent(null);
+      return;
+    }
+
+    setExistingConvs((prev) => ({ ...prev, [event.id]: createdConversation.id }));
+    navigate(`/messages?conversation=${createdConversation.id}`);
   };
 
   if (loading) {
