@@ -49,20 +49,6 @@ export function EventCard({ event, sponsorProfile, organizer }: EventCardProps) 
           </div>
         )}
 
-        {/* Top-right: Heart */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setLiked(!liked);
-          }}
-          className={`absolute top-3 right-3 h-9 w-9 rounded-full flex items-center justify-center transition-colors ${
-            liked
-              ? "bg-destructive text-white"
-              : "bg-foreground/30 backdrop-blur-sm text-white hover:bg-foreground/50"
-          }`}
-        >
-          <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
-        </button>
 
         {/* Bottom-left: Type badge */}
         {event.type && (
