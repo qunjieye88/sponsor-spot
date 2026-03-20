@@ -158,47 +158,6 @@ export default function DashboardPage() {
     return true;
   });
 
-  const stats = profile?.role === "organizer"
-    ? [
-        { label: "Mis Eventos", value: events.length, icon: CalendarDays },
-        { label: "Publicados", value: events.filter((e) => e.published).length, icon: TrendingUp },
-        { label: "Borradores", value: events.filter((e) => !e.published).length, icon: Users },
-      ]
-    : [
-        { label: "Eventos Disponibles", value: events.length, icon: CalendarDays },
-      ];
-
-  return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="animate-fade-in">
-          <h1 className="text-2xl font-bold">
-            {profile?.role === "organizer" ? "Mis Eventos" : "Explorar Eventos"}
-          </h1>
-          <p className="text-muted-foreground">
-            {profile?.role === "organizer"
-              ? "Gestiona y publica tus eventos"
-              : "Encuentra eventos para patrocinar"}
-          </p>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-slide-up" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>
-          {stats.map((stat) => (
-            <div key={stat.label} className="bg-card rounded-xl p-5 shadow-card">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <stat.icon className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold tabular-nums">{stat.value}</p>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
 
         {/* Search + Filters toggle */}
         <div className="flex gap-3 items-center animate-slide-up" style={{ animationDelay: "0.15s", animationFillMode: "both" }}>
