@@ -139,6 +139,8 @@ export default function DashboardPage() {
                 <EventCard
                   event={event}
                   userRole={profile?.role || "sponsor"}
+                  sponsorProfile={profile?.role === "sponsor" ? profile : null}
+                  organizer={organizers[event.organizer_id]}
                 />
               </div>
             ))}
