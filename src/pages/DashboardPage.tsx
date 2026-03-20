@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Search, CalendarDays, SlidersHorizontal, CalendarIcon } from "lucide-react";
+import { Search, CalendarDays, SlidersHorizontal, CalendarIcon, ArrowUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import type { Event, Profile } from "@/lib/supabase-helpers";
+import { calculateMatchScore } from "@/lib/supabase-helpers";
 
 const EVENT_TYPES = [
   "Festival Musical",
@@ -66,6 +67,7 @@ export default function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [sortBy, setSortBy] = useState<string>("recent");
 
   // Unique locations from loaded events
   const [locations, setLocations] = useState<string[]>([]);
@@ -158,6 +160,24 @@ export default function DashboardPage() {
     return true;
   });
 
+  const sortedEvents = useMemo(() => {
+    if (sortBy === "match" && profile?.role === "sponsor") {
+      return [...filteredEvents].sort((a, b) => {
+        const scoreA = calculateMatchScore(a, profile);
+        const scoreB = calculateMatchScore(b, profile);
+        return scoreB - scoreA;
+      });
+    }
+    if (sortBy === "date") {
+      return [...filteredEvents].sort((a, b) => {
+        const da = a.date ? new Date(a.date).getTime() : 0;
+        const db = b.date ? new Date(b.date).getTime() : 0;
+        return db - da;
+      });
+    }
+    return filteredEvents; // recent = default DB order
+  }, [filteredEvents, sortBy, profile]);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -192,6 +212,19 @@ export default function DashboardPage() {
             <SlidersHorizontal className="h-4 w-4" />
             Filtros
           </Button>
+          {profile?.role === "sponsor" && (
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[180px] shrink-0">
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Ordenar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="recent">Más recientes</SelectItem>
+                <SelectItem value="match">Mayor afinidad</SelectItem>
+                <SelectItem value="date">Fecha del evento</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {/* Type pills */}
@@ -355,7 +388,7 @@ export default function DashboardPage() {
               <div key={i} className="bg-card rounded-xl h-80 animate-pulse" />
             ))}
           </div>
-        ) : filteredEvents.length === 0 ? (
+        ) : sortedEvents.length === 0 ? (
           <div className="text-center py-16 animate-fade-in">
             <CalendarDays className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
             <h3 className="font-semibold text-lg">No hay eventos todavía</h3>
@@ -367,7 +400,7 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredEvents.map((event, i) => (
+            {sortedEvents.map((event, i) => (
               <div
                 key={event.id}
                 className="animate-slide-up"

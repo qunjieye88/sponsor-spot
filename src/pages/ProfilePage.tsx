@@ -24,6 +24,9 @@ export default function ProfilePage() {
   const [budgetMin, setBudgetMin] = useState(profile?.budget_min?.toString() || "");
   const [budgetMax, setBudgetMax] = useState(profile?.budget_max?.toString() || "");
   const [activations, setActivations] = useState((profile?.preferred_activations || []).join(", "));
+  const [preferredSectors, setPreferredSectors] = useState(((profile as any)?.preferred_sectors || []).join(", "));
+  const [preferredAudiences, setPreferredAudiences] = useState(((profile as any)?.preferred_audiences || []).join(", "));
+  const [preferredEventTypes, setPreferredEventTypes] = useState(((profile as any)?.preferred_event_types || []).join(", "));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +47,9 @@ export default function ProfilePage() {
       updates.budget_min = parseInt(budgetMin) || 0;
       updates.budget_max = parseInt(budgetMax) || 0;
       updates.preferred_activations = activations.split(",").map(s => s.trim()).filter(Boolean);
+      updates.preferred_sectors = preferredSectors.split(",").map(s => s.trim()).filter(Boolean);
+      updates.preferred_audiences = preferredAudiences.split(",").map(s => s.trim()).filter(Boolean);
+      updates.preferred_event_types = preferredEventTypes.split(",").map(s => s.trim()).filter(Boolean);
     }
 
     const { data, error } = await supabase
@@ -124,7 +130,22 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <Label>Activaciones preferidas</Label>
-                  <Input value={activations} onChange={(e) => setActivations(e.target.value)} />
+                  <Input value={activations} onChange={(e) => setActivations(e.target.value)} placeholder="Stand, Sampling, Naming..." />
+                </div>
+                <div>
+                  <Label>Sectores de interés</Label>
+                  <Input value={preferredSectors} onChange={(e) => setPreferredSectors(e.target.value)} placeholder="Tecnología, Deportes, Música..." />
+                  <p className="text-xs text-muted-foreground mt-1">Separa con comas los sectores que te interesan</p>
+                </div>
+                <div>
+                  <Label>Tipos de evento preferidos</Label>
+                  <Input value={preferredEventTypes} onChange={(e) => setPreferredEventTypes(e.target.value)} placeholder="Festival Musical, Conferencia Tech..." />
+                  <p className="text-xs text-muted-foreground mt-1">Separa con comas los tipos de evento</p>
+                </div>
+                <div>
+                  <Label>Audiencias de interés</Label>
+                  <Input value={preferredAudiences} onChange={(e) => setPreferredAudiences(e.target.value)} placeholder="Jóvenes 18-30, Profesionales, Familias..." />
+                  <p className="text-xs text-muted-foreground mt-1">Separa con comas las audiencias objetivo</p>
                 </div>
               </>
             )}
