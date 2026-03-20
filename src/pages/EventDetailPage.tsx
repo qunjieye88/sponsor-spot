@@ -47,25 +47,18 @@ export default function EventDetailPage() {
     supabase.from("events").select("*").eq("id", id).single().then(({ data }) => {
       setEvent(data);
       if (data) {
-        const promises: Promise<any>[] = [
-          supabase.from("profiles").select("*").eq("id", data.organizer_id).single(),
-          profile?.role === "sponsor"
-            ? supabase.from("contact_requests").select("*").eq("event_id", id).eq("sponsor_id", profile.id).maybeSingle()
-            : Promise.resolve({ data: null }),
-        ];
+        const orgPromise = supabase.from("profiles").select("*").eq("id", data.organizer_id).single();
+        const reqPromise = profile?.role === "sponsor"
+          ? supabase.from("contact_requests").select("*").eq("event_id", id).eq("sponsor_id", profile.id).maybeSingle()
+          : Promise.resolve({ data: null, error: null });
+        const sponsorsPromise = (data.confirmed_sponsors && data.confirmed_sponsors.length > 0)
+          ? supabase.from("profiles").select("*").eq("role", "sponsor")
+          : Promise.resolve({ data: null, error: null });
 
-        // Fetch confirmed sponsor profiles by name
-        if (data.confirmed_sponsors && data.confirmed_sponsors.length > 0) {
-          promises.push(
-            supabase.from("profiles").select("*").eq("role", "sponsor")
-          );
-        }
-
-        Promise.all(promises).then(([orgRes, reqRes, sponsorsRes]) => {
+        Promise.all([orgPromise, reqPromise, sponsorsPromise]).then(([orgRes, reqRes, sponsorsRes]) => {
           setOrganizer(orgRes.data);
           setContactRequest((reqRes as any).data || null);
 
-          // Match confirmed sponsor names to profiles
           if (sponsorsRes?.data && data.confirmed_sponsors) {
             const names = data.confirmed_sponsors.map((n: string) => n.toLowerCase());
             const matched = (sponsorsRes.data as Profile[]).filter(p =>
