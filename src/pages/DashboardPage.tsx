@@ -5,11 +5,12 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { EventCard } from "@/components/EventCard";
 import { Input } from "@/components/ui/input";
 import { Search, CalendarDays, TrendingUp, Users } from "lucide-react";
-import type { Event } from "@/lib/supabase-helpers";
+import type { Event, Profile } from "@/lib/supabase-helpers";
 
 export default function DashboardPage() {
   const { profile } = useAuthContext();
   const [events, setEvents] = useState<Event[]>([]);
+  const [organizers, setOrganizers] = useState<Record<string, Pick<Profile, "name" | "avatar_url">>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -28,6 +29,21 @@ export default function DashboardPage() {
     }
     const { data } = await query.order("created_at", { ascending: false });
     setEvents(data || []);
+
+    // Fetch organizer profiles
+    if (data && data.length > 0) {
+      const orgIds = [...new Set(data.map((e) => e.organizer_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, name, avatar_url")
+        .in("id", orgIds);
+      if (profiles) {
+        const map: Record<string, Pick<Profile, "name" | "avatar_url">> = {};
+        profiles.forEach((p) => { map[p.id] = { name: p.name, avatar_url: p.avatar_url }; });
+        setOrganizers(map);
+      }
+    }
+
     setLoading(false);
   };
 
