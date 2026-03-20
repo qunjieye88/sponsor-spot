@@ -33,17 +33,21 @@ export default function SponsorDetailPage() {
       const evts = (eventsRes.data as Event[]) || [];
       setEvents(evts);
 
-      // Check existing conversations for each event
+      // Check existing conversations and contact requests
       if (profile && id && evts.length > 0) {
-        const { data: convs } = await supabase
-          .from("conversations")
-          .select("id, event_id")
-          .eq("organizer_id", profile.id)
-          .eq("sponsor_id", id);
-        if (convs) {
+        const [convsRes, reqsRes] = await Promise.all([
+          supabase.from("conversations").select("id, event_id").eq("organizer_id", profile.id).eq("sponsor_id", id),
+          supabase.from("contact_requests").select("id, event_id, status").eq("organizer_id", profile.id).eq("sponsor_id", id),
+        ]);
+        if (convsRes.data) {
           const map: Record<string, string> = {};
-          convs.forEach((c) => { map[c.event_id] = c.id; });
+          convsRes.data.forEach((c) => { map[c.event_id] = c.id; });
           setExistingConvs(map);
+        }
+        if (reqsRes.data) {
+          const map: Record<string, string> = {};
+          reqsRes.data.forEach((r) => { map[r.event_id] = r.status; });
+          setExistingRequests(map);
         }
       }
 
