@@ -272,12 +272,8 @@ export default function EventDetailPage() {
                       to={`/sponsors/${sp.id}`}
                       className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
                     >
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        {sp.avatar_url ? (
-                          <img src={sp.avatar_url} alt="" className="h-10 w-10 rounded-lg object-cover" />
-                        ) : (
-                          <Building2 className="h-5 w-5 text-primary" />
-                        )}
+                      <div className="h-10 w-10 rounded-lg overflow-hidden shrink-0">
+                        <img src={resolveAvatar(sp.avatar_url, sp.id)} alt="" className="h-10 w-10 rounded-lg object-cover" />
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold text-sm">{sp.name}</p>
