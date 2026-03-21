@@ -278,7 +278,17 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* Inline filter bar — BELOW carousel */}
+        {/* Header + count */}
+        <div className="animate-fade-in">
+          <h1 className="text-3xl font-bold">
+            {profile?.role === "organizer" ? "Mis Eventos" : "Explorar eventos"}
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            {sortedEvents.length} evento{sortedEvents.length !== 1 ? "s" : ""} disponible{sortedEvents.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+
+        {/* Inline filter bar */}
         <div className="flex flex-wrap items-center gap-3 animate-slide-up" style={{ animationDelay: "0.15s", animationFillMode: "both" }}>
           <div className="flex flex-wrap items-center gap-2 flex-1">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
