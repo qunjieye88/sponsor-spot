@@ -113,7 +113,48 @@ export default function DashboardPage() {
       }
     }
 
+    // Fetch saved events for carousel bookmark
+    if (profile.role === "sponsor") {
+      const { data: savedData } = await supabase
+        .from("saved_events")
+        .select("event_id")
+        .eq("profile_id", profile.id);
+      if (savedData) {
+        setSavedEventIds(new Set(savedData.map((s) => s.event_id)));
+      }
+    }
+
     setLoading(false);
+  };
+
+  const toggleSaveEvent = async (e: React.MouseEvent, eventId: string) => {
+    e.stopPropagation();
+    if (!profile || savingEvent) return;
+    setSavingEvent(eventId);
+    const isSaved = savedEventIds.has(eventId);
+
+    if (isSaved) {
+      const { error } = await supabase
+        .from("saved_events")
+        .delete()
+        .eq("profile_id", profile.id)
+        .eq("event_id", eventId);
+      if (error) toast.error(error.message);
+      else {
+        setSavedEventIds((prev) => { const next = new Set(prev); next.delete(eventId); return next; });
+        toast.success("Evento eliminado de guardados");
+      }
+    } else {
+      const { error } = await supabase
+        .from("saved_events")
+        .insert({ profile_id: profile.id, event_id: eventId });
+      if (error) toast.error(error.message);
+      else {
+        setSavedEventIds((prev) => new Set(prev).add(eventId));
+        toast.success("Evento guardado");
+      }
+    }
+    setSavingEvent(null);
   };
 
   const filteredEvents = events.filter((e) => {
