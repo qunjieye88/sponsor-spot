@@ -299,6 +299,20 @@ export default function SponsorsPage() {
                         <MatchBadge score={avgMatch} size="sm" />
                       </div>
                     )}
+                    {/* Save button */}
+                    {profile && (
+                      <button
+                        onClick={(e) => toggleSaveSponsor(e, sponsor.id)}
+                        className={cn(
+                          "absolute bottom-3 right-3 p-2 rounded-full backdrop-blur-sm transition-all shadow-md",
+                          savedSponsorIds.has(sponsor.id)
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground"
+                        )}
+                      >
+                        <Bookmark className={cn("h-4 w-4", savedSponsorIds.has(sponsor.id) && "fill-current")} />
+                      </button>
+                    )}
                     {/* Verified badge */}
                     {sponsor.verified && (
                       <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-xs font-medium">
