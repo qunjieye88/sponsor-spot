@@ -96,14 +96,7 @@ const App = () => (
                 </RequireProfile>
               }
             />
-            <Route
-              path="/contact-requests"
-              element={
-                <RequireProfile>
-                  <ContactRequestsPage />
-                </RequireProfile>
-              }
-            />
+            
             <Route
               path="/profile"
               element={
