@@ -173,94 +173,109 @@ export default function DashboardPage() {
 
         {/* Top matches carousel (sponsors only) — ABOVE filters */}
         {profile?.role === "sponsor" && topMatches.length > 0 && (
-          <section className="space-y-3 animate-slide-up" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>
+          <section className="space-y-4 animate-slide-up" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                <h2 className="font-bold text-lg">Mayor afinidad para ti</h2>
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-primary/10">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-lg leading-tight">Mayor afinidad para ti</h2>
+                  <p className="text-xs text-muted-foreground">Eventos que encajan con tu perfil</p>
+                </div>
               </div>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => scrollCarousel("left")}
-                  className="p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                  className="p-2 rounded-full border border-border hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => scrollCarousel("right")}
-                  className="p-1.5 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                  className="p-2 rounded-full border border-border hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                 >
-                  <ChevronRight className="h-5 w-5" />
+                  <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
             </div>
             <div
               ref={carouselRef}
-              className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1"
+              className="flex gap-5 overflow-x-auto snap-x snap-mandatory pb-3 -mx-1 px-1"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-              {topMatches.map(({ event, score }) => {
+              {topMatches.map(({ event, score }, i) => {
                 const org = organizers[event.organizer_id];
                 return (
                   <div
                     key={event.id}
                     onClick={() => navigate(`/events/${event.id}`)}
-                    className="min-w-[380px] max-w-[420px] flex-shrink-0 snap-start cursor-pointer group"
+                    className="min-w-[440px] max-w-[480px] flex-shrink-0 snap-start cursor-pointer group"
                   >
-                    <div className="relative flex h-[180px] rounded-2xl overflow-hidden bg-card shadow-card hover:shadow-card-hover transition-all hover:-translate-y-0.5">
-                      {/* Left: image */}
-                      <div className="w-[45%] relative overflow-hidden">
+                    <div className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                      {/* Full-width background image */}
+                      <div className="relative h-[260px] overflow-hidden">
                         {event.media && event.media.length > 0 ? (
                           <img
                             src={event.media[0]}
                             alt={event.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                           />
                         ) : (
-                          <div className="w-full h-full gradient-primary opacity-80" />
+                          <div className="w-full h-full gradient-primary" />
                         )}
-                        {/* Match score overlay */}
-                        <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-primary text-primary-foreground text-xs font-bold flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3" />
-                          {score}%
+                        {/* Dark gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+                        {/* Match score — top left */}
+                        <div className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-bold shadow-md">
+                          <TrendingUp className="h-3.5 w-3.5" />
+                          {score}% Match
                         </div>
-                      </div>
-                      {/* Right: content */}
-                      <div className="flex-1 p-4 flex flex-col justify-between">
-                        <div>
-                          <h3 className="font-bold text-foreground text-sm leading-tight line-clamp-2 mb-1.5">
+
+                        {/* Rank badge — top right */}
+                        <div className="absolute top-3 right-3 h-8 w-8 rounded-full bg-card/90 backdrop-blur-sm flex items-center justify-center text-sm font-bold text-foreground shadow-md">
+                          #{i + 1}
+                        </div>
+
+                        {/* Content overlay — bottom */}
+                        <div className="absolute bottom-0 left-0 right-0 p-5">
+                          <h3 className="font-bold text-white text-lg leading-tight line-clamp-2 mb-2 drop-shadow-sm">
                             {event.title}
                           </h3>
-                          {event.date && (
-                            <p className="text-xs text-muted-foreground mb-1">
-                              {format(new Date(event.date), "d MMM yyyy", { locale: es })}
-                            </p>
-                          )}
-                          {event.location && (
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <MapPin className="h-3 w-3 shrink-0" />
-                              <span className="line-clamp-1">{event.location}</span>
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between mt-2">
-                          {event.sponsorship_max != null && event.sponsorship_max > 0 ? (
-                            <span className="text-sm font-bold text-foreground">
-                              ${event.sponsorship_max.toLocaleString()}
-                            </span>
-                          ) : <span />}
-                          {org && (
-                            <div className="flex items-center gap-1.5">
-                              <img
-                                src={resolveAvatar(org.avatar_url, org.id)}
-                                alt=""
-                                className="h-5 w-5 rounded-full object-cover"
-                              />
-                              <span className="text-xs text-muted-foreground line-clamp-1 max-w-[80px]">
-                                {org.name}
+                          <div className="flex flex-wrap items-center gap-3 text-white/80 text-sm">
+                            {event.date && (
+                              <span className="flex items-center gap-1">
+                                <CalendarDays className="h-3.5 w-3.5" />
+                                {format(new Date(event.date), "d MMM yyyy", { locale: es })}
                               </span>
-                            </div>
-                          )}
+                            )}
+                            {event.location && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-3.5 w-3.5" />
+                                <span className="line-clamp-1">{event.location}</span>
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/20">
+                            {event.sponsorship_max != null && event.sponsorship_max > 0 ? (
+                              <span className="text-base font-bold text-white">
+                                ${event.sponsorship_max.toLocaleString()}
+                              </span>
+                            ) : <span />}
+                            {org && (
+                              <div className="flex items-center gap-2">
+                                <img
+                                  src={resolveAvatar(org.avatar_url, org.id)}
+                                  alt=""
+                                  className="h-6 w-6 rounded-full object-cover ring-2 ring-white/30"
+                                />
+                                <span className="text-sm text-white/90 line-clamp-1 max-w-[100px]">
+                                  {org.name}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
