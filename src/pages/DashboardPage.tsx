@@ -161,15 +161,7 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        {/* Header + count */}
-        <div className="animate-fade-in">
-          <h1 className="text-2xl font-bold">
-            {profile?.role === "organizer" ? "Mis Eventos" : "Explorar eventos"}
-          </h1>
-          <p className="text-muted-foreground">
-            {sortedEvents.length} evento{sortedEvents.length !== 1 ? "s" : ""} disponible{sortedEvents.length !== 1 ? "s" : ""}
-          </p>
-        </div>
+        {/* Header + count — moved below carousel */}
 
         {/* Top matches carousel (sponsors only) — ABOVE filters */}
         {profile?.role === "sponsor" && topMatches.length > 0 && (
@@ -180,7 +172,7 @@ export default function DashboardPage() {
                   <Sparkles className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-lg leading-tight">Mayor afinidad para ti</h2>
+                  <h2 className="font-bold text-lg leading-tight">Eventos destacados</h2>
                   <p className="text-xs text-muted-foreground">Eventos que encajan con tu perfil</p>
                 </div>
               </div>
@@ -286,7 +278,17 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* Inline filter bar — BELOW carousel */}
+        {/* Header + count */}
+        <div className="animate-fade-in">
+          <h1 className="text-3xl font-bold">
+            {profile?.role === "organizer" ? "Mis Eventos" : "Explorar eventos"}
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            {sortedEvents.length} evento{sortedEvents.length !== 1 ? "s" : ""} disponible{sortedEvents.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+
+        {/* Inline filter bar */}
         <div className="flex flex-wrap items-center gap-3 animate-slide-up" style={{ animationDelay: "0.15s", animationFillMode: "both" }}>
           <div className="flex flex-wrap items-center gap-2 flex-1">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
