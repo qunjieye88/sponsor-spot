@@ -38,6 +38,7 @@ export default function Index() {
         </div>
         <div className="container relative z-10 py-24 md:py-32">
           <div className="max-w-2xl animate-slide-up">
+            <p className="text-sm font-semibold text-primary uppercase tracking-widest mb-3">Conectar marcas, crear momentos.</p>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.08] tracking-tight">
               Conecta tus eventos con los sponsors perfectos
             </h1>
