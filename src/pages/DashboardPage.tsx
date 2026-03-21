@@ -161,15 +161,7 @@ export default function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        {/* Header + count */}
-        <div className="animate-fade-in">
-          <h1 className="text-2xl font-bold">
-            {profile?.role === "organizer" ? "Mis Eventos" : "Explorar eventos"}
-          </h1>
-          <p className="text-muted-foreground">
-            {sortedEvents.length} evento{sortedEvents.length !== 1 ? "s" : ""} disponible{sortedEvents.length !== 1 ? "s" : ""}
-          </p>
-        </div>
+        {/* Header + count — moved below carousel */}
 
         {/* Top matches carousel (sponsors only) — ABOVE filters */}
         {profile?.role === "sponsor" && topMatches.length > 0 && (
