@@ -12,6 +12,7 @@ import {
   Inbox,
 } from "lucide-react";
 import { useState } from "react";
+import { resolveAvatar } from "@/lib/avatar";
 
 export function Navbar() {
   const { profile, signOut } = useAuthContext();
