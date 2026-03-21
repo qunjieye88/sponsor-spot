@@ -11,9 +11,9 @@ export default function Index() {
         <div className="container flex items-center justify-between h-14">
           <div className="flex items-center gap-2 font-bold text-lg">
             <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SP</span>
+              <span className="text-white font-bold text-sm">Sy</span>
             </div>
-            SponsorMatch
+            Sponsorly
           </div>
           <div className="flex items-center gap-2">
             <Link to="/auth">
