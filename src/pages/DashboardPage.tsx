@@ -54,7 +54,7 @@ const STATUS_OPTIONS = [
 export default function DashboardPage() {
   const { profile } = useAuthContext();
   const [events, setEvents] = useState<Event[]>([]);
-  const [organizers, setOrganizers] = useState<Record<string, Pick<Profile, "name" | "avatar_url">>>({});
+  const [organizers, setOrganizers] = useState<Record<string, Pick<Profile, "id" | "name" | "avatar_url">>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -102,8 +102,8 @@ export default function DashboardPage() {
         .select("id, name, avatar_url")
         .in("id", orgIds);
       if (profiles) {
-        const map: Record<string, Pick<Profile, "name" | "avatar_url">> = {};
-        profiles.forEach((p) => { map[p.id] = { name: p.name, avatar_url: p.avatar_url }; });
+        const map: Record<string, Pick<Profile, "id" | "name" | "avatar_url">> = {};
+        profiles.forEach((p) => { map[p.id] = { id: p.id, name: p.name, avatar_url: p.avatar_url }; });
         setOrganizers(map);
       }
     }

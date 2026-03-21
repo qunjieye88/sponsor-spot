@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Save, User, Camera } from "lucide-react";
+import { Save, User, Camera, Loader2 } from "lucide-react";
 import { resolveAvatar } from "@/lib/avatar";
 
 const DESC_MAX = 500;
@@ -31,6 +31,56 @@ export default function ProfilePage() {
   const [preferredSectors, setPreferredSectors] = useState(((profile as any)?.preferred_sectors || []).join(", "));
   const [preferredAudiences, setPreferredAudiences] = useState(((profile as any)?.preferred_audiences || []).join(", "));
   const [preferredEventTypes, setPreferredEventTypes] = useState(((profile as any)?.preferred_event_types || []).join(", "));
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    
+    if (!file.type.startsWith("image/")) {
+      toast.error("Solo se permiten imágenes");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen no puede superar 5MB");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setUploadingAvatar(false); return; }
+
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/avatar.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true });
+
+    if (uploadError) {
+      toast.error("Error al subir imagen: " + uploadError.message);
+      setUploadingAvatar(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+    const avatarUrl = urlData.publicUrl + "?t=" + Date.now();
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: avatarUrl })
+      .eq("id", profile.id)
+      .select()
+      .single();
+
+    if (error) toast.error(error.message);
+    else {
+      setProfile(data);
+      toast.success("Foto actualizada");
+    }
+    setUploadingAvatar(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,12 +130,23 @@ export default function ProfilePage() {
         <div className="bg-card rounded-2xl shadow-card p-6 md:p-8">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
             {/* Avatar with camera overlay */}
-            <div className="relative group cursor-pointer shrink-0">
+            <div className="relative group cursor-pointer shrink-0" onClick={() => fileInputRef.current?.click()}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+              />
               <div className="h-20 w-20 rounded-full overflow-hidden ring-4 ring-background shadow-md">
                 <img src={resolveAvatar(profile.avatar_url, profile.id)} alt="" className="h-20 w-20 rounded-full object-cover" />
               </div>
               <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <Camera className="h-5 w-5 text-white" />
+                {uploadingAvatar ? (
+                  <Loader2 className="h-5 w-5 text-white animate-spin" />
+                ) : (
+                  <Camera className="h-5 w-5 text-white" />
+                )}
               </div>
             </div>
             {/* Name + role */}
