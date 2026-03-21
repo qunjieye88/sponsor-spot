@@ -7,6 +7,7 @@ import { MatchBadge } from "@/components/MatchBadge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send, User, CalendarDays, MessageSquare } from "lucide-react";
+import { resolveAvatar } from "@/lib/avatar";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Conversation, Message, Profile, Event } from "@/lib/supabase-helpers";
