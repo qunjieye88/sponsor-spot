@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Save, User, Camera } from "lucide-react";
+import { resolveAvatar } from "@/lib/avatar";
 
 const DESC_MAX = 500;
 
