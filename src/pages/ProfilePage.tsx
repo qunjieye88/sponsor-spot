@@ -31,6 +31,56 @@ export default function ProfilePage() {
   const [preferredSectors, setPreferredSectors] = useState(((profile as any)?.preferred_sectors || []).join(", "));
   const [preferredAudiences, setPreferredAudiences] = useState(((profile as any)?.preferred_audiences || []).join(", "));
   const [preferredEventTypes, setPreferredEventTypes] = useState(((profile as any)?.preferred_event_types || []).join(", "));
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+    
+    if (!file.type.startsWith("image/")) {
+      toast.error("Solo se permiten imágenes");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen no puede superar 5MB");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setUploadingAvatar(false); return; }
+
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/avatar.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true });
+
+    if (uploadError) {
+      toast.error("Error al subir imagen: " + uploadError.message);
+      setUploadingAvatar(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+    const avatarUrl = urlData.publicUrl + "?t=" + Date.now();
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: avatarUrl })
+      .eq("id", profile.id)
+      .select()
+      .single();
+
+    if (error) toast.error(error.message);
+    else {
+      setProfile(data);
+      toast.success("Foto actualizada");
+    }
+    setUploadingAvatar(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
