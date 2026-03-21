@@ -59,6 +59,7 @@ const SORT_OPTIONS = [
 
 export default function DashboardPage() {
   const { profile } = useAuthContext();
+  const navigate = useNavigate();
   const [events, setEvents] = useState<Event[]>([]);
   const [organizers, setOrganizers] = useState<Record<string, Pick<Profile, "id" | "name" | "avatar_url">>>({});
   const [loading, setLoading] = useState(true);
