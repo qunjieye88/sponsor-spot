@@ -41,6 +41,8 @@ export default function SponsorsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [savedSponsorIds, setSavedSponsorIds] = useState<Set<string>>(new Set());
+  const [savingSponsor, setSavingSponsor] = useState<string | null>(null);
 
   // Filters
   const [activeIndustry, setActiveIndustry] = useState("Todos");
