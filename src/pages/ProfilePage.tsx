@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Save, User, Camera } from "lucide-react";
+import { resolveAvatar } from "@/lib/avatar";
 
 const DESC_MAX = 500;
 
@@ -80,12 +81,8 @@ export default function ProfilePage() {
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
             {/* Avatar with camera overlay */}
             <div className="relative group cursor-pointer shrink-0">
-              <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden ring-4 ring-background shadow-md">
-                {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="h-20 w-20 rounded-full object-cover" />
-                ) : (
-                  <User className="h-9 w-9 text-primary" />
-                )}
+              <div className="h-20 w-20 rounded-full overflow-hidden ring-4 ring-background shadow-md">
+                <img src={resolveAvatar(profile.avatar_url, profile.id)} alt="" className="h-20 w-20 rounded-full object-cover" />
               </div>
               <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <Camera className="h-5 w-5 text-white" />

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Check, X, User, CalendarDays, Inbox, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { resolveAvatar } from "@/lib/avatar";
 import type { Profile, Event, ContactRequest } from "@/lib/supabase-helpers";
 
 interface RequestWithDetails extends ContactRequest {
@@ -115,12 +116,8 @@ export default function ContactRequestsPage() {
             {requests.map(req => (
               <div key={req.id} className="bg-card rounded-xl shadow-card p-5">
                 <div className="flex items-center gap-4">
-                  <div className="h-11 w-11 rounded-full bg-muted flex items-center justify-center shrink-0">
-                    {req.sponsor?.avatar_url ? (
-                      <img src={req.sponsor.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
-                    ) : (
-                      <User className="h-5 w-5 text-muted-foreground" />
-                    )}
+                  <div className="h-11 w-11 rounded-full overflow-hidden shrink-0">
+                    <img src={resolveAvatar(req.sponsor?.avatar_url, req.sponsor?.id || req.id)} alt="" className="h-11 w-11 rounded-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm">{req.sponsor?.name || "Sponsor"}</p>

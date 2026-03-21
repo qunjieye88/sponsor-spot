@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Event, Profile, ContactRequest } from "@/lib/supabase-helpers";
 import { calculateMatchScore, getMatchBreakdown } from "@/lib/supabase-helpers";
+import { resolveAvatar } from "@/lib/avatar";
 
 const mockPackages = [
   { name: "Gold", benefits: ["Logo en escenario principal", "Stand 6x3m", "10 pases VIP", "Mención en RRSS"] },
@@ -272,12 +273,8 @@ export default function EventDetailPage() {
                       to={`/sponsors/${sp.id}`}
                       className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md hover:-translate-y-0.5"
                     >
-                      <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        {sp.avatar_url ? (
-                          <img src={sp.avatar_url} alt="" className="h-10 w-10 rounded-lg object-cover" />
-                        ) : (
-                          <Building2 className="h-5 w-5 text-primary" />
-                        )}
+                      <div className="h-10 w-10 rounded-lg overflow-hidden shrink-0">
+                        <img src={resolveAvatar(sp.avatar_url, sp.id)} alt="" className="h-10 w-10 rounded-lg object-cover" />
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold text-sm">{sp.name}</p>
@@ -312,12 +309,8 @@ export default function EventDetailPage() {
                   to={`/organizers/${organizer.id}`}
                   className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 transition-all hover:shadow-md hover:-translate-y-0.5"
                 >
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-sm font-bold text-primary">
-                    {organizer.avatar_url ? (
-                      <img src={organizer.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
-                    ) : (
-                      organizer.name?.slice(0, 2).toUpperCase()
-                    )}
+                  <div className="h-12 w-12 rounded-full overflow-hidden shrink-0">
+                    <img src={resolveAvatar(organizer.avatar_url, organizer.id)} alt="" className="h-12 w-12 rounded-full object-cover" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">

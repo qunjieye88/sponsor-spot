@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Building2, DollarSign, Tag, MessageSquare, Globe, Briefcase, Zap, CheckCircle2 } from "lucide-react";
 import type { Profile, Event } from "@/lib/supabase-helpers";
 import { calculateMatchScore } from "@/lib/supabase-helpers";
+import { resolveAvatar } from "@/lib/avatar";
 
 export default function SponsorDetailPage() {
   const { id } = useParams();
@@ -151,8 +152,8 @@ export default function SponsorDetailPage() {
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-xl bg-accent/10 flex items-center justify-center">
-                <Building2 className="h-8 w-8 text-accent" />
+              <div className="h-16 w-16 rounded-xl overflow-hidden">
+                <img src={resolveAvatar(sponsor.avatar_url, sponsor.id)} alt="" className="h-16 w-16 rounded-xl object-cover" />
               </div>
               <div>
                 <h1 className="text-xl font-bold">{sponsor.name}</h1>

@@ -11,9 +11,9 @@ export default function Index() {
         <div className="container flex items-center justify-between h-14">
           <div className="flex items-center gap-2 font-bold text-lg">
             <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SP</span>
+              <span className="text-white font-bold text-sm">Sy</span>
             </div>
-            SponsorMatch
+            Sponsorly
           </div>
           <div className="flex items-center gap-2">
             <Link to="/auth">
@@ -38,6 +38,7 @@ export default function Index() {
         </div>
         <div className="container relative z-10 py-24 md:py-32">
           <div className="max-w-2xl animate-slide-up">
+            <p className="text-sm font-semibold text-primary uppercase tracking-widest mb-3">Conectar marcas, crear momentos.</p>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.08] tracking-tight">
               Conecta tus eventos con los sponsors perfectos
             </h1>
@@ -138,12 +139,12 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="py-8 border-t border-border">
-        <div className="container flex items-center justify-between text-sm text-muted-foreground">
+          <div className="container flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded-md gradient-primary flex items-center justify-center">
-              <span className="text-white text-xs font-bold">SP</span>
+              <span className="text-white text-xs font-bold">Sy</span>
             </div>
-            SponsorMatch
+            Sponsorly
           </div>
           <p>© {new Date().getFullYear()} Todos los derechos reservados.</p>
         </div>

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Profile, Event } from "@/lib/supabase-helpers";
 import { calculateMatchScore } from "@/lib/supabase-helpers";
+import { resolveAvatar } from "@/lib/avatar";
 
 const INDUSTRY_PILLS = [
   "Tecnología",
@@ -245,12 +246,8 @@ export default function SponsorsPage() {
                 >
                   {/* Cover area */}
                   <div className="relative h-32 bg-gradient-to-br from-primary/20 via-accent/10 to-muted flex items-center justify-center">
-                    <div className="h-16 w-16 rounded-2xl bg-card shadow-md flex items-center justify-center">
-                      {sponsor.avatar_url ? (
-                        <img src={sponsor.avatar_url} alt="" className="h-16 w-16 rounded-2xl object-cover" />
-                      ) : (
-                        <Building2 className="h-8 w-8 text-muted-foreground" />
-                      )}
+                    <div className="h-16 w-16 rounded-2xl bg-card shadow-md flex items-center justify-center overflow-hidden">
+                      <img src={resolveAvatar(sponsor.avatar_url, sponsor.id)} alt="" className="h-16 w-16 rounded-2xl object-cover" />
                     </div>
                     {/* Match badge */}
                     {events.length > 0 && (
