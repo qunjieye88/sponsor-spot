@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Save, User, Camera } from "lucide-react";
+import { Save, User, Camera, Loader2 } from "lucide-react";
 import { resolveAvatar } from "@/lib/avatar";
 
 const DESC_MAX = 500;
