@@ -19,7 +19,7 @@ interface EventCardProps {
   hideSave?: boolean;
 }
 
-export function EventCard({ event, sponsorProfile, organizer, currentProfileId }: EventCardProps) {
+export function EventCard({ event, sponsorProfile, organizer, currentProfileId, hideSave }: EventCardProps) {
   const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
   const [savingInProgress, setSavingInProgress] = useState(false);
