@@ -58,10 +58,52 @@ export default function SponsorsPage() {
       ]);
       setSponsors(sponsorsRes.data || []);
       setEvents(eventsRes.data || []);
+
+      // Fetch saved sponsors
+      if (profile) {
+        const { data: savedData } = await supabase
+          .from("saved_sponsors")
+          .select("sponsor_id")
+          .eq("profile_id", profile.id);
+        if (savedData) {
+          setSavedSponsorIds(new Set(savedData.map((s: any) => s.sponsor_id)));
+        }
+      }
+
       setLoading(false);
     };
     fetchData();
   }, [profile]);
+
+  const toggleSaveSponsor = async (e: React.MouseEvent, sponsorId: string) => {
+    e.stopPropagation();
+    if (!profile || savingSponsor) return;
+    setSavingSponsor(sponsorId);
+    const isSaved = savedSponsorIds.has(sponsorId);
+
+    if (isSaved) {
+      const { error } = await supabase
+        .from("saved_sponsors")
+        .delete()
+        .eq("profile_id", profile.id)
+        .eq("sponsor_id", sponsorId);
+      if (error) toast.error(error.message);
+      else {
+        setSavedSponsorIds((prev) => { const next = new Set(prev); next.delete(sponsorId); return next; });
+        toast.success("Sponsor eliminado de guardados");
+      }
+    } else {
+      const { error } = await supabase
+        .from("saved_sponsors")
+        .insert({ profile_id: profile.id, sponsor_id: sponsorId });
+      if (error) toast.error(error.message);
+      else {
+        setSavedSponsorIds((prev) => new Set(prev).add(sponsorId));
+        toast.success("Sponsor guardado");
+      }
+    }
+    setSavingSponsor(null);
+  };
 
   const filteredSponsors = sponsors.filter((s) => {
     // Text search
