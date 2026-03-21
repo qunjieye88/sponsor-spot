@@ -174,10 +174,8 @@ export default function MessagesPage() {
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${
-                        activeConv === conv.id ? "bg-white/20" : "bg-muted"
-                      }`}>
-                        <User className={`h-5 w-5 ${activeConv === conv.id ? "text-white" : "text-muted-foreground"}`} />
+                      <div className="h-10 w-10 rounded-full overflow-hidden shrink-0">
+                        <img src={resolveAvatar(conv.otherUser?.avatar_url, conv.otherUser?.id || conv.id)} alt="" className="h-10 w-10 rounded-full object-cover" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-sm truncate">
