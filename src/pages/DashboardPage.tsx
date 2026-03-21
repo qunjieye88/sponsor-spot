@@ -268,10 +268,18 @@ export default function DashboardPage() {
                           {score}% Match
                         </div>
 
-                        {/* Rank badge — top right */}
-                        <div className="absolute top-3 right-3 h-8 w-8 rounded-full bg-card/90 backdrop-blur-sm flex items-center justify-center text-sm font-bold text-foreground shadow-md">
-                          #{i + 1}
-                        </div>
+                        {/* Save button — top right */}
+                        <button
+                          onClick={(e) => toggleSaveEvent(e, event.id)}
+                          className={cn(
+                            "absolute top-3 right-3 p-2 rounded-full backdrop-blur-sm transition-all shadow-md",
+                            savedEventIds.has(event.id)
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground"
+                          )}
+                        >
+                          <Bookmark className={cn("h-4 w-4", savedEventIds.has(event.id) && "fill-current")} />
+                        </button>
 
                         {/* Content overlay — bottom */}
                         <div className="absolute bottom-0 left-0 right-0 p-5">
