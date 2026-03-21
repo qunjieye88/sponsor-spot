@@ -5,13 +5,14 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { EventCard } from "@/components/EventCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarDays, ChevronLeft, ChevronRight, Sparkles, MapPin, TrendingUp } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Sparkles, MapPin, TrendingUp, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Event, Profile } from "@/lib/supabase-helpers";
 import { calculateMatchScore } from "@/lib/supabase-helpers";
 import { resolveAvatar } from "@/lib/avatar";
+import { toast } from "sonner";
 
 const CATEGORY_OPTIONS = [
   { label: "Categoría", value: "all" },
@@ -63,7 +64,8 @@ export default function DashboardPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [organizers, setOrganizers] = useState<Record<string, Pick<Profile, "id" | "name" | "avatar_url">>>({});
   const [loading, setLoading] = useState(true);
-
+  const [savedEventIds, setSavedEventIds] = useState<Set<string>>(new Set());
+  const [savingEvent, setSavingEvent] = useState<string | null>(null);
   // Filters
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
@@ -111,7 +113,48 @@ export default function DashboardPage() {
       }
     }
 
+    // Fetch saved events for carousel bookmark
+    if (profile.role === "sponsor") {
+      const { data: savedData } = await supabase
+        .from("saved_events")
+        .select("event_id")
+        .eq("profile_id", profile.id);
+      if (savedData) {
+        setSavedEventIds(new Set(savedData.map((s) => s.event_id)));
+      }
+    }
+
     setLoading(false);
+  };
+
+  const toggleSaveEvent = async (e: React.MouseEvent, eventId: string) => {
+    e.stopPropagation();
+    if (!profile || savingEvent) return;
+    setSavingEvent(eventId);
+    const isSaved = savedEventIds.has(eventId);
+
+    if (isSaved) {
+      const { error } = await supabase
+        .from("saved_events")
+        .delete()
+        .eq("profile_id", profile.id)
+        .eq("event_id", eventId);
+      if (error) toast.error(error.message);
+      else {
+        setSavedEventIds((prev) => { const next = new Set(prev); next.delete(eventId); return next; });
+        toast.success("Evento eliminado de guardados");
+      }
+    } else {
+      const { error } = await supabase
+        .from("saved_events")
+        .insert({ profile_id: profile.id, event_id: eventId });
+      if (error) toast.error(error.message);
+      else {
+        setSavedEventIds((prev) => new Set(prev).add(eventId));
+        toast.success("Evento guardado");
+      }
+    }
+    setSavingEvent(null);
   };
 
   const filteredEvents = events.filter((e) => {
@@ -172,8 +215,8 @@ export default function DashboardPage() {
                   <Sparkles className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-lg leading-tight">Eventos destacados</h2>
-                  <p className="text-xs text-muted-foreground">Eventos que encajan con tu perfil</p>
+                  <h2 className="font-bold text-2xl leading-tight">Eventos destacados</h2>
+                  <p className="text-sm text-muted-foreground">Eventos que encajan con tu perfil</p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -225,10 +268,18 @@ export default function DashboardPage() {
                           {score}% Match
                         </div>
 
-                        {/* Rank badge — top right */}
-                        <div className="absolute top-3 right-3 h-8 w-8 rounded-full bg-card/90 backdrop-blur-sm flex items-center justify-center text-sm font-bold text-foreground shadow-md">
-                          #{i + 1}
-                        </div>
+                        {/* Save button — top right */}
+                        <button
+                          onClick={(e) => toggleSaveEvent(e, event.id)}
+                          className={cn(
+                            "absolute top-3 right-3 p-2 rounded-full backdrop-blur-sm transition-all shadow-md",
+                            savedEventIds.has(event.id)
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground"
+                          )}
+                        >
+                          <Bookmark className={cn("h-4 w-4", savedEventIds.has(event.id) && "fill-current")} />
+                        </button>
 
                         {/* Content overlay — bottom */}
                         <div className="absolute bottom-0 left-0 right-0 p-5">
@@ -391,6 +442,7 @@ export default function DashboardPage() {
                   sponsorProfile={profile?.role === "sponsor" ? profile : null}
                   organizer={organizers[event.organizer_id]}
                   currentProfileId={profile?.id}
+                  hideSave={profile?.role === "organizer"}
                 />
               </div>
             ))}

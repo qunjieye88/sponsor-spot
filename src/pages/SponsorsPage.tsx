@@ -6,7 +6,7 @@ import { MatchBadge } from "@/components/MatchBadge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Building2, DollarSign, Tag, MessageSquare, SlidersHorizontal, MapPin, Briefcase } from "lucide-react";
+import { Search, Building2, DollarSign, Tag, MessageSquare, SlidersHorizontal, MapPin, Briefcase, Bookmark } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -41,6 +41,8 @@ export default function SponsorsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [savedSponsorIds, setSavedSponsorIds] = useState<Set<string>>(new Set());
+  const [savingSponsor, setSavingSponsor] = useState<string | null>(null);
 
   // Filters
   const [activeIndustry, setActiveIndustry] = useState("Todos");
@@ -56,10 +58,52 @@ export default function SponsorsPage() {
       ]);
       setSponsors(sponsorsRes.data || []);
       setEvents(eventsRes.data || []);
+
+      // Fetch saved sponsors
+      if (profile) {
+        const { data: savedData } = await supabase
+          .from("saved_sponsors")
+          .select("sponsor_id")
+          .eq("profile_id", profile.id);
+        if (savedData) {
+          setSavedSponsorIds(new Set(savedData.map((s: any) => s.sponsor_id)));
+        }
+      }
+
       setLoading(false);
     };
     fetchData();
   }, [profile]);
+
+  const toggleSaveSponsor = async (e: React.MouseEvent, sponsorId: string) => {
+    e.stopPropagation();
+    if (!profile || savingSponsor) return;
+    setSavingSponsor(sponsorId);
+    const isSaved = savedSponsorIds.has(sponsorId);
+
+    if (isSaved) {
+      const { error } = await supabase
+        .from("saved_sponsors")
+        .delete()
+        .eq("profile_id", profile.id)
+        .eq("sponsor_id", sponsorId);
+      if (error) toast.error(error.message);
+      else {
+        setSavedSponsorIds((prev) => { const next = new Set(prev); next.delete(sponsorId); return next; });
+        toast.success("Sponsor eliminado de guardados");
+      }
+    } else {
+      const { error } = await supabase
+        .from("saved_sponsors")
+        .insert({ profile_id: profile.id, sponsor_id: sponsorId });
+      if (error) toast.error(error.message);
+      else {
+        setSavedSponsorIds((prev) => new Set(prev).add(sponsorId));
+        toast.success("Sponsor guardado");
+      }
+    }
+    setSavingSponsor(null);
+  };
 
   const filteredSponsors = sponsors.filter((s) => {
     // Text search
@@ -254,6 +298,20 @@ export default function SponsorsPage() {
                       <div className="absolute top-3 right-3">
                         <MatchBadge score={avgMatch} size="sm" />
                       </div>
+                    )}
+                    {/* Save button */}
+                    {profile && (
+                      <button
+                        onClick={(e) => toggleSaveSponsor(e, sponsor.id)}
+                        className={cn(
+                          "absolute bottom-3 right-3 p-2 rounded-full backdrop-blur-sm transition-all shadow-md",
+                          savedSponsorIds.has(sponsor.id)
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground"
+                        )}
+                      >
+                        <Bookmark className={cn("h-4 w-4", savedSponsorIds.has(sponsor.id) && "fill-current")} />
+                      </button>
                     )}
                     {/* Verified badge */}
                     {sponsor.verified && (

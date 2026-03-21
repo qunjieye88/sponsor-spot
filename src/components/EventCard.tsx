@@ -16,9 +16,10 @@ interface EventCardProps {
   sponsorProfile?: Profile | null;
   organizer?: Pick<Profile, "id" | "name" | "avatar_url"> | null;
   currentProfileId?: string;
+  hideSave?: boolean;
 }
 
-export function EventCard({ event, sponsorProfile, organizer, currentProfileId }: EventCardProps) {
+export function EventCard({ event, sponsorProfile, organizer, currentProfileId, hideSave }: EventCardProps) {
   const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
   const [savingInProgress, setSavingInProgress] = useState(false);
@@ -100,7 +101,7 @@ export function EventCard({ event, sponsorProfile, organizer, currentProfileId }
         )}
 
         {/* Top-right: Save button */}
-        {currentProfileId && (
+        {currentProfileId && !hideSave && (
           <button
             onClick={toggleSave}
             className={cn(
