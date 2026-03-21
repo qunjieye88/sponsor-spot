@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Check, X, User, CalendarDays, Inbox, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { resolveAvatar } from "@/lib/avatar";
 import type { Profile, Event, ContactRequest } from "@/lib/supabase-helpers";
 
 interface RequestWithDetails extends ContactRequest {

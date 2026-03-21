@@ -6,6 +6,7 @@ import { EventCard } from "@/components/EventCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, User, Shield, CalendarDays, Globe, Building2 } from "lucide-react";
 import type { Event, Profile } from "@/lib/supabase-helpers";
+import { resolveAvatar } from "@/lib/avatar";
 
 export default function OrganizerProfilePage() {
   const { id } = useParams();
