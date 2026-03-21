@@ -121,6 +121,14 @@ const App = () => (
                 </RequireProfile>
               }
             />
+            <Route
+              path="/saved"
+              element={
+                <RequireProfile>
+                  <SavedEventsPage />
+                </RequireProfile>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

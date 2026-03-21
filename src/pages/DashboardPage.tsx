@@ -430,6 +430,7 @@ export default function DashboardPage() {
                   userRole={profile?.role || "sponsor"}
                   sponsorProfile={profile?.role === "sponsor" ? profile : null}
                   organizer={organizers[event.organizer_id]}
+                  currentProfileId={profile?.id}
                 />
               </div>
             ))}
