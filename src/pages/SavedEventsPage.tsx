@@ -4,11 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { EventCard } from "@/components/EventCard";
-import { Bookmark, Briefcase, DollarSign, Tag } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { SponsorCard } from "@/components/SponsorCard";
+import { Bookmark } from "lucide-react";
 import { toast } from "sonner";
 import type { Event, Profile } from "@/lib/supabase-helpers";
-import { resolveAvatar } from "@/lib/avatar";
 
 export default function SavedEventsPage() {
   const { profile } = useAuthContext();
@@ -132,56 +131,13 @@ export default function SavedEventsPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {savedSponsors.map((sponsor, i) => (
-                <div
+                <SponsorCard
                   key={sponsor.id}
-                  onClick={() => navigate(`/sponsors/${sponsor.id}`)}
-                  className="bg-card rounded-xl shadow-card overflow-hidden cursor-pointer transition-all hover:shadow-card-hover hover:-translate-y-1 active:scale-[0.98] animate-slide-up"
-                  style={{ animationDelay: `${0.05 * i}s`, animationFillMode: "both" }}
-                >
-                  <div className="relative h-32 bg-gradient-to-br from-primary/20 via-accent/10 to-muted flex items-center justify-center">
-                    <div className="h-16 w-16 rounded-2xl bg-card shadow-md flex items-center justify-center overflow-hidden">
-                      <img src={resolveAvatar(sponsor.avatar_url, sponsor.id)} alt="" className="h-16 w-16 rounded-2xl object-cover" />
-                    </div>
-                    {sponsor.verified && (
-                      <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-xs font-medium">
-                        Verificado
-                      </span>
-                    )}
-                    <button
-                      onClick={(e) => toggleUnsaveSponsor(e, sponsor.id)}
-                      className="absolute top-3 right-3 p-2 rounded-full bg-primary text-primary-foreground backdrop-blur-sm transition-all shadow-md"
-                    >
-                      <Bookmark className="h-4 w-4 fill-current" />
-                    </button>
-                  </div>
-                  <div className="p-4 space-y-3">
-                    <div className="text-center">
-                      <h3 className="font-semibold text-base">{sponsor.name}</h3>
-                      {sponsor.industry && (
-                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1 mt-0.5">
-                          <Briefcase className="h-3.5 w-3.5" />
-                          {sponsor.industry}
-                        </p>
-                      )}
-                    </div>
-                    {sponsor.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2 text-center">{sponsor.description}</p>
-                    )}
-                    <div className="flex flex-wrap justify-center gap-1.5">
-                      {sponsor.budget_max != null && sponsor.budget_max > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-xs font-medium">
-                          <DollarSign className="h-3 w-3" />
-                          ${sponsor.budget_min?.toLocaleString()} - ${sponsor.budget_max.toLocaleString()}
-                        </span>
-                      )}
-                      {sponsor.tags?.slice(0, 2).map((tag) => (
-                        <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                          <Tag className="h-3 w-3" /> {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                  sponsor={sponsor}
+                  isSaved={true}
+                  onToggleSave={toggleUnsaveSponsor}
+                  animationDelay={0.05 * i}
+                />
               ))}
             </div>
           )
