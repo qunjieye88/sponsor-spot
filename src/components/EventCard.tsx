@@ -107,7 +107,7 @@ export function EventCard({ event, sponsorProfile, organizer }: EventCardProps) 
           {organizer && (
             <div className="flex items-center gap-2">
               <img
-                src={resolveAvatar(organizer.avatar_url, (organizer as any).id || organizer.name || "")}
+                src={resolveAvatar(organizer.avatar_url, organizer.id || "")}
                 alt={organizer.name}
                 className="h-7 w-7 rounded-full object-cover"
               />
