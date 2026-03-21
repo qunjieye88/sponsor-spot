@@ -54,7 +54,7 @@ const STATUS_OPTIONS = [
 export default function DashboardPage() {
   const { profile } = useAuthContext();
   const [events, setEvents] = useState<Event[]>([]);
-  const [organizers, setOrganizers] = useState<Record<string, Pick<Profile, "name" | "avatar_url">>>({});
+  const [organizers, setOrganizers] = useState<Record<string, Pick<Profile, "id" | "name" | "avatar_url">>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
 
