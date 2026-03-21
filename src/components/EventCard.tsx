@@ -101,7 +101,7 @@ export function EventCard({ event, sponsorProfile, organizer, currentProfileId, 
         )}
 
         {/* Top-right: Save button */}
-        {currentProfileId && (
+        {currentProfileId && !hideSave && (
           <button
             onClick={toggleSave}
             className={cn(
