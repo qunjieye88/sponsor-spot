@@ -4,11 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { EventCard } from "@/components/EventCard";
-import { Bookmark, Briefcase, DollarSign, Tag } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { SponsorCard } from "@/components/SponsorCard";
+import { Bookmark } from "lucide-react";
 import { toast } from "sonner";
 import type { Event, Profile } from "@/lib/supabase-helpers";
-import { resolveAvatar } from "@/lib/avatar";
 
 export default function SavedEventsPage() {
   const { profile } = useAuthContext();

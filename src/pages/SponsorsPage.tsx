@@ -282,89 +282,17 @@ export default function SponsorsPage() {
             {filteredSponsors.map((sponsor, i) => {
               const avgMatch = getAvgMatchForSponsor(sponsor);
               return (
-                <div
+                <SponsorCard
                   key={sponsor.id}
-                  onClick={() => navigate(`/sponsors/${sponsor.id}`)}
-                  className="bg-card rounded-xl shadow-card overflow-hidden cursor-pointer transition-all hover:shadow-card-hover hover:-translate-y-1 active:scale-[0.98] animate-slide-up"
-                  style={{ animationDelay: `${0.05 * i}s`, animationFillMode: "both" }}
-                >
-                  {/* Cover area */}
-                  <div className="relative h-32 bg-gradient-to-br from-primary/20 via-accent/10 to-muted flex items-center justify-center">
-                    <div className="h-16 w-16 rounded-2xl bg-card shadow-md flex items-center justify-center overflow-hidden">
-                      <img src={resolveAvatar(sponsor.avatar_url, sponsor.id)} alt="" className="h-16 w-16 rounded-2xl object-cover" />
-                    </div>
-                    {/* Match badge */}
-                    {events.length > 0 && (
-                      <div className="absolute top-3 right-3">
-                        <MatchBadge score={avgMatch} size="sm" />
-                      </div>
-                    )}
-                    {/* Save button */}
-                    {profile && (
-                      <button
-                        onClick={(e) => toggleSaveSponsor(e, sponsor.id)}
-                        className={cn(
-                          "absolute bottom-3 right-3 p-2 rounded-full backdrop-blur-sm transition-all shadow-md",
-                          savedSponsorIds.has(sponsor.id)
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground"
-                        )}
-                      >
-                        <Bookmark className={cn("h-4 w-4", savedSponsorIds.has(sponsor.id) && "fill-current")} />
-                      </button>
-                    )}
-                    {/* Verified badge */}
-                    {sponsor.verified && (
-                      <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-xs font-medium">
-                        Verificado
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-4 space-y-3">
-                    <div className="text-center">
-                      <h3 className="font-semibold text-base">{sponsor.name}</h3>
-                      {sponsor.industry && (
-                        <p className="text-sm text-muted-foreground flex items-center justify-center gap-1 mt-0.5">
-                          <Briefcase className="h-3.5 w-3.5" />
-                          {sponsor.industry}
-                        </p>
-                      )}
-                    </div>
-
-                    {sponsor.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2 text-center">{sponsor.description}</p>
-                    )}
-
-                    {/* Budget + Tags row */}
-                    <div className="flex flex-wrap justify-center gap-1.5">
-                      {sponsor.budget_max != null && sponsor.budget_max > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-xs font-medium">
-                          <DollarSign className="h-3 w-3" />
-                          ${sponsor.budget_min?.toLocaleString()} - ${sponsor.budget_max.toLocaleString()}
-                        </span>
-                      )}
-                      {sponsor.tags?.slice(0, 2).map((tag) => (
-                        <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                          <Tag className="h-3 w-3" /> {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Contact button */}
-                    {events.length > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-full w-full"
-                        onClick={(e) => startConversation(e, sponsor, events[0])}
-                      >
-                        <MessageSquare className="h-4 w-4 mr-1.5" /> Contactar
-                      </Button>
-                    )}
-                  </div>
-                </div>
+                  sponsor={sponsor}
+                  avgMatch={avgMatch}
+                  showMatch={events.length > 0}
+                  isSaved={savedSponsorIds.has(sponsor.id)}
+                  onToggleSave={profile ? toggleSaveSponsor : undefined}
+                  showContact={events.length > 0}
+                  onContact={(e, s) => startConversation(e, s, events[0])}
+                  animationDelay={0.05 * i}
+                />
               );
             })}
           </div>
