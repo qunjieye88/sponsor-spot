@@ -41,9 +41,9 @@ export function Navbar() {
       <div className="container flex items-center justify-between h-14">
         <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg">
           <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">
-            <span className="text-white font-bold text-sm">SP</span>
+            <span className="text-white font-bold text-sm">Sy</span>
           </div>
-          <span className="hidden sm:inline">SponsorMatch</span>
+          <span className="hidden sm:inline">Sponsorly</span>
         </Link>
 
         {/* Desktop nav */}
