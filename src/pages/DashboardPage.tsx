@@ -170,87 +170,9 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Inline filter bar */}
-        <div className="flex flex-wrap items-center gap-3 animate-slide-up" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>
-          <div className="flex flex-wrap items-center gap-2 flex-1">
-            {/* Category */}
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-auto min-w-[130px] bg-background border-border rounded-lg h-10 text-sm">
-                <SelectValue placeholder="Categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORY_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* City */}
-            <Select value={locationFilter} onValueChange={setLocationFilter}>
-              <SelectTrigger className="w-auto min-w-[120px] bg-background border-border rounded-lg h-10 text-sm">
-                <SelectValue placeholder="Ciudad" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Ciudad</SelectItem>
-                {locations.map((loc) => (
-                  <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Size */}
-            <Select value={sizeFilter} onValueChange={setSizeFilter}>
-              <SelectTrigger className="w-auto min-w-[110px] bg-background border-border rounded-lg h-10 text-sm">
-                <SelectValue placeholder="Tamaño" />
-              </SelectTrigger>
-              <SelectContent>
-                {SIZE_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Audience */}
-            <Select value={audienceFilter} onValueChange={setAudienceFilter}>
-              <SelectTrigger className="w-auto min-w-[110px] bg-background border-border rounded-lg h-10 text-sm">
-                <SelectValue placeholder="Público" />
-              </SelectTrigger>
-              <SelectContent>
-                {AUDIENCE_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Budget */}
-            <Select value={budgetFilter} onValueChange={setBudgetFilter}>
-              <SelectTrigger className="w-auto min-w-[130px] bg-background border-border rounded-lg h-10 text-sm">
-                <SelectValue placeholder="Presupuesto" />
-              </SelectTrigger>
-              <SelectContent>
-                {BUDGET_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Sort — right-aligned */}
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-auto min-w-[140px] bg-background border-border rounded-lg h-10 text-sm">
-              <SelectValue placeholder="Relevancia" />
-            </SelectTrigger>
-            <SelectContent>
-              {SORT_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Top matches carousel (sponsors only) */}
+        {/* Top matches carousel (sponsors only) — ABOVE filters */}
         {profile?.role === "sponsor" && topMatches.length > 0 && (
-          <section className="space-y-3 animate-slide-up" style={{ animationDelay: "0.15s", animationFillMode: "both" }}>
+          <section className="space-y-3 animate-slide-up" style={{ animationDelay: "0.1s", animationFillMode: "both" }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
@@ -273,26 +195,152 @@ export default function DashboardPage() {
             </div>
             <div
               ref={carouselRef}
-              className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2 -mx-1 px-1"
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-              {topMatches.map(({ event, score }, i) => (
-                <div
-                  key={event.id}
-                  className="min-w-[300px] max-w-[340px] flex-shrink-0 snap-start"
-                >
-                  <EventCard
-                    event={event}
-                    userRole="sponsor"
-                    sponsorProfile={profile}
-                    organizer={organizers[event.organizer_id]}
-                    currentProfileId={profile?.id}
-                  />
-                </div>
-              ))}
+              {topMatches.map(({ event, score }) => {
+                const org = organizers[event.organizer_id];
+                return (
+                  <div
+                    key={event.id}
+                    onClick={() => navigate(`/events/${event.id}`)}
+                    className="min-w-[380px] max-w-[420px] flex-shrink-0 snap-start cursor-pointer group"
+                  >
+                    <div className="relative flex h-[180px] rounded-2xl overflow-hidden bg-card shadow-card hover:shadow-card-hover transition-all hover:-translate-y-0.5">
+                      {/* Left: image */}
+                      <div className="w-[45%] relative overflow-hidden">
+                        {event.media && event.media.length > 0 ? (
+                          <img
+                            src={event.media[0]}
+                            alt={event.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full gradient-primary opacity-80" />
+                        )}
+                        {/* Match score overlay */}
+                        <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-primary text-primary-foreground text-xs font-bold flex items-center gap-1">
+                          <TrendingUp className="h-3 w-3" />
+                          {score}%
+                        </div>
+                      </div>
+                      {/* Right: content */}
+                      <div className="flex-1 p-4 flex flex-col justify-between">
+                        <div>
+                          <h3 className="font-bold text-foreground text-sm leading-tight line-clamp-2 mb-1.5">
+                            {event.title}
+                          </h3>
+                          {event.date && (
+                            <p className="text-xs text-muted-foreground mb-1">
+                              {format(new Date(event.date), "d MMM yyyy", { locale: es })}
+                            </p>
+                          )}
+                          {event.location && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <MapPin className="h-3 w-3 shrink-0" />
+                              <span className="line-clamp-1">{event.location}</span>
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          {event.sponsorship_max != null && event.sponsorship_max > 0 ? (
+                            <span className="text-sm font-bold text-foreground">
+                              ${event.sponsorship_max.toLocaleString()}
+                            </span>
+                          ) : <span />}
+                          {org && (
+                            <div className="flex items-center gap-1.5">
+                              <img
+                                src={resolveAvatar(org.avatar_url, org.id)}
+                                alt=""
+                                className="h-5 w-5 rounded-full object-cover"
+                              />
+                              <span className="text-xs text-muted-foreground line-clamp-1 max-w-[80px]">
+                                {org.name}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </section>
         )}
+
+        {/* Inline filter bar — BELOW carousel */}
+        <div className="flex flex-wrap items-center gap-3 animate-slide-up" style={{ animationDelay: "0.15s", animationFillMode: "both" }}>
+          <div className="flex flex-wrap items-center gap-2 flex-1">
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-auto min-w-[130px] bg-background border-border rounded-lg h-10 text-sm">
+                <SelectValue placeholder="Categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORY_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={locationFilter} onValueChange={setLocationFilter}>
+              <SelectTrigger className="w-auto min-w-[120px] bg-background border-border rounded-lg h-10 text-sm">
+                <SelectValue placeholder="Ciudad" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Ciudad</SelectItem>
+                {locations.map((loc) => (
+                  <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={sizeFilter} onValueChange={setSizeFilter}>
+              <SelectTrigger className="w-auto min-w-[110px] bg-background border-border rounded-lg h-10 text-sm">
+                <SelectValue placeholder="Tamaño" />
+              </SelectTrigger>
+              <SelectContent>
+                {SIZE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={audienceFilter} onValueChange={setAudienceFilter}>
+              <SelectTrigger className="w-auto min-w-[110px] bg-background border-border rounded-lg h-10 text-sm">
+                <SelectValue placeholder="Público" />
+              </SelectTrigger>
+              <SelectContent>
+                {AUDIENCE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={budgetFilter} onValueChange={setBudgetFilter}>
+              <SelectTrigger className="w-auto min-w-[130px] bg-background border-border rounded-lg h-10 text-sm">
+                <SelectValue placeholder="Presupuesto" />
+              </SelectTrigger>
+              <SelectContent>
+                {BUDGET_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-auto min-w-[140px] bg-background border-border rounded-lg h-10 text-sm">
+              <SelectValue placeholder="Relevancia" />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Events Grid */}
         {loading ? (
