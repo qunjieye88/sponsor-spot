@@ -173,8 +173,8 @@ export default function DashboardPage() {
                   <Sparkles className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-lg leading-tight">Eventos destacados</h2>
-                  <p className="text-xs text-muted-foreground">Eventos que encajan con tu perfil</p>
+                  <h2 className="font-bold text-2xl leading-tight">Eventos destacados</h2>
+                  <p className="text-sm text-muted-foreground">Eventos que encajan con tu perfil</p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
