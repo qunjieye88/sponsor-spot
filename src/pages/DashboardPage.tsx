@@ -64,7 +64,8 @@ export default function DashboardPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [organizers, setOrganizers] = useState<Record<string, Pick<Profile, "id" | "name" | "avatar_url">>>({});
   const [loading, setLoading] = useState(true);
-
+  const [savedEventIds, setSavedEventIds] = useState<Set<string>>(new Set());
+  const [savingEvent, setSavingEvent] = useState<string | null>(null);
   // Filters
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [locationFilter, setLocationFilter] = useState("all");
