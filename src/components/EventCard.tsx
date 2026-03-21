@@ -1,23 +1,72 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, MapPin, Users } from "lucide-react";
+import { CalendarDays, MapPin, Users, Bookmark } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import type { Event, AppRole, Profile } from "@/lib/supabase-helpers";
 import { calculateMatchScore } from "@/lib/supabase-helpers";
 import { resolveAvatar } from "@/lib/avatar";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface EventCardProps {
   event: Event;
   userRole: AppRole;
   sponsorProfile?: Profile | null;
   organizer?: Pick<Profile, "id" | "name" | "avatar_url"> | null;
+  currentProfileId?: string;
 }
 
-export function EventCard({ event, sponsorProfile, organizer }: EventCardProps) {
+export function EventCard({ event, sponsorProfile, organizer, currentProfileId }: EventCardProps) {
   const navigate = useNavigate();
+  const [saved, setSaved] = useState(false);
+  const [savingInProgress, setSavingInProgress] = useState(false);
 
   const matchScore = sponsorProfile ? calculateMatchScore(event, sponsorProfile) : null;
   const isStrongMatch = matchScore !== null && matchScore >= 80;
+
+  useEffect(() => {
+    if (!currentProfileId) return;
+    supabase
+      .from("saved_events")
+      .select("id")
+      .eq("profile_id", currentProfileId)
+      .eq("event_id", event.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setSaved(true);
+      });
+  }, [currentProfileId, event.id]);
+
+  const toggleSave = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentProfileId || savingInProgress) return;
+    setSavingInProgress(true);
+
+    if (saved) {
+      const { error } = await supabase
+        .from("saved_events")
+        .delete()
+        .eq("profile_id", currentProfileId)
+        .eq("event_id", event.id);
+      if (error) toast.error(error.message);
+      else {
+        setSaved(false);
+        toast.success("Evento eliminado de guardados");
+      }
+    } else {
+      const { error } = await supabase
+        .from("saved_events")
+        .insert({ profile_id: currentProfileId, event_id: event.id });
+      if (error) toast.error(error.message);
+      else {
+        setSaved(true);
+        toast.success("Evento guardado");
+      }
+    }
+    setSavingInProgress(false);
+  };
 
   return (
     <div
@@ -50,6 +99,20 @@ export function EventCard({ event, sponsorProfile, organizer }: EventCardProps) 
           </div>
         )}
 
+        {/* Top-right: Save button */}
+        {currentProfileId && (
+          <button
+            onClick={toggleSave}
+            className={cn(
+              "absolute top-3 right-3 p-2 rounded-full backdrop-blur-sm transition-all",
+              saved
+                ? "bg-primary text-primary-foreground"
+                : "bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground"
+            )}
+          >
+            <Bookmark className={cn("h-4 w-4", saved && "fill-current")} />
+          </button>
+        )}
 
         {/* Bottom-left: Type badge */}
         {event.type && (
@@ -72,7 +135,7 @@ export function EventCard({ event, sponsorProfile, organizer }: EventCardProps) 
           {event.title}
         </h3>
 
-        {/* Date · Location · Capacity — single line */}
+        {/* Date · Location · Capacity */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
           {event.date && (
             <span className="flex items-center gap-1">
