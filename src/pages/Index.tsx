@@ -139,12 +139,12 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="py-8 border-t border-border">
-        <div className="container flex items-center justify-between text-sm text-muted-foreground">
+          <div className="container flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <div className="h-6 w-6 rounded-md gradient-primary flex items-center justify-center">
-              <span className="text-white text-xs font-bold">SP</span>
+              <span className="text-white text-xs font-bold">Sy</span>
             </div>
-            SponsorMatch
+            Sponsorly
           </div>
           <p>© {new Date().getFullYear()} Todos los derechos reservados.</p>
         </div>

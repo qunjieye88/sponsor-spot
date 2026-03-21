@@ -152,8 +152,8 @@ export default function SponsorDetailPage() {
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-xl bg-accent/10 flex items-center justify-center">
-                <Building2 className="h-8 w-8 text-accent" />
+              <div className="h-16 w-16 rounded-xl overflow-hidden">
+                <img src={resolveAvatar(sponsor.avatar_url, sponsor.id)} alt="" className="h-16 w-16 rounded-xl object-cover" />
               </div>
               <div>
                 <h1 className="text-xl font-bold">{sponsor.name}</h1>
