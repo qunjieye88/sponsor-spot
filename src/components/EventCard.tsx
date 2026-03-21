@@ -16,6 +16,7 @@ interface EventCardProps {
   sponsorProfile?: Profile | null;
   organizer?: Pick<Profile, "id" | "name" | "avatar_url"> | null;
   currentProfileId?: string;
+  hideSave?: boolean;
 }
 
 export function EventCard({ event, sponsorProfile, organizer, currentProfileId }: EventCardProps) {
