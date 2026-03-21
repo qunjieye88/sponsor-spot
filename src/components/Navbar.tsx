@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   Inbox,
+  Bookmark,
 } from "lucide-react";
 import { useState } from "react";
 import { resolveAvatar } from "@/lib/avatar";
