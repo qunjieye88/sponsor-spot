@@ -442,6 +442,7 @@ export default function DashboardPage() {
                   sponsorProfile={profile?.role === "sponsor" ? profile : null}
                   organizer={organizers[event.organizer_id]}
                   currentProfileId={profile?.id}
+                  hideSave={profile?.role === "organizer"}
                 />
               </div>
             ))}

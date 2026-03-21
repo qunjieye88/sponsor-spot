@@ -6,7 +6,7 @@ import { MatchBadge } from "@/components/MatchBadge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Building2, DollarSign, Tag, MessageSquare, SlidersHorizontal, MapPin, Briefcase } from "lucide-react";
+import { Search, Building2, DollarSign, Tag, MessageSquare, SlidersHorizontal, MapPin, Briefcase, Bookmark } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
