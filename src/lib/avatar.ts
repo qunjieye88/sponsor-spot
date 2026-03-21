@@ -13,9 +13,13 @@ export function getDefaultAvatar(profileId: string, size = 200): string {
 }
 
 /**
- * Returns the avatar_url if set, otherwise a default real-person photo.
+ * Returns the avatar_url only if it was uploaded by the user (stored in our
+ * storage bucket), otherwise falls back to a real-person photo.
+ * This prevents non-person images (logos, products) from being used as profile pics.
  */
 export function resolveAvatar(avatarUrl: string | null | undefined, profileId: string, size = 200): string {
-  if (avatarUrl) return avatarUrl;
+  if (avatarUrl && avatarUrl.includes('/storage/v1/object/public/avatars/')) {
+    return avatarUrl;
+  }
   return getDefaultAvatar(profileId, size);
 }
