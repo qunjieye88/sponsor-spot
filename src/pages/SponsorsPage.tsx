@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Profile, Event } from "@/lib/supabase-helpers";
 import { calculateMatchScore } from "@/lib/supabase-helpers";
+import { resolveAvatar } from "@/lib/avatar";
 
 const INDUSTRY_PILLS = [
   "Tecnología",
