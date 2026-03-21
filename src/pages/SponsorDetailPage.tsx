@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Building2, DollarSign, Tag, MessageSquare, Globe, Briefcase, Zap, CheckCircle2 } from "lucide-react";
 import type { Profile, Event } from "@/lib/supabase-helpers";
 import { calculateMatchScore } from "@/lib/supabase-helpers";
+import { resolveAvatar } from "@/lib/avatar";
 
 export default function SponsorDetailPage() {
   const { id } = useParams();
