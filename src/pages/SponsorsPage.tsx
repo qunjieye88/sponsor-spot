@@ -49,6 +49,7 @@ export default function SponsorsPage() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [budgetFilter, setBudgetFilter] = useState("");
   const [verifiedFilter, setVerifiedFilter] = useState("");
+  const [sortBy, setSortBy] = useState<"match" | "name" | "budget">("match");
 
   useEffect(() => {
     const fetchData = async () => {
