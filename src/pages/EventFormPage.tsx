@@ -78,6 +78,8 @@ export default function EventFormPage() {
       sponsorship_min: parseInt(sponsorshipMin) || 0,
       sponsorship_max: parseInt(sponsorshipMax) || 0,
       published,
+      latitude: latitude ? parseFloat(latitude) : null,
+      longitude: longitude ? parseFloat(longitude) : null,
     };
 
     if (isEditing && id) {
