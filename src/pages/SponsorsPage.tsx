@@ -6,7 +6,7 @@ import { SponsorCard } from "@/components/SponsorCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Building2, SlidersHorizontal } from "lucide-react";
+import { Search, Building2, SlidersHorizontal, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
