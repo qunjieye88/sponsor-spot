@@ -122,6 +122,14 @@ const App = () => (
                 </RequireProfile>
               }
             />
+            <Route
+              path="/map"
+              element={
+                <RequireProfile>
+                  <EventsMapPage />
+                </RequireProfile>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
