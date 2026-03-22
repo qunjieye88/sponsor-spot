@@ -222,7 +222,7 @@ export default function EventsMapPage() {
       });
       popupRootsRef.current = [];
       loadedIdsRef.current.clear();
-      layer?.clearLayers();
+      markerLayerRef.current?.clearLayers();
       map.remove();
       mapRef.current = null;
       markerLayerRef.current = null;
