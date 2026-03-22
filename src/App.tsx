@@ -18,6 +18,7 @@ import OrganizerProfilePage from "./pages/OrganizerProfilePage";
 import ProfilePage from "./pages/ProfilePage";
 import MessagesPage from "./pages/MessagesPage";
 import SavedEventsPage from "./pages/SavedEventsPage";
+import EventsMapPage from "./pages/EventsMapPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
