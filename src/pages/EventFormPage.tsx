@@ -159,6 +159,17 @@ export default function EventFormPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <Label>Latitud</Label>
+                <Input type="number" step="any" value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="40.4168" />
+              </div>
+              <div>
+                <Label>Longitud</Label>
+                <Input type="number" step="any" value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="-3.7038" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
                 <Label>Capacidad</Label>
                 <Input type="number" value={capacity} onChange={(e) => setCapacity(e.target.value)} placeholder="500" />
               </div>
