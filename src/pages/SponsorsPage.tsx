@@ -291,22 +291,28 @@ export default function SponsorsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredSponsors.map((sponsor, i) => {
-              const avgMatch = getAvgMatchForSponsor(sponsor);
-              return (
-                <SponsorCard
-                  key={sponsor.id}
-                  sponsor={sponsor}
-                  avgMatch={avgMatch}
-                  showMatch={events.length > 0}
-                  isSaved={savedSponsorIds.has(sponsor.id)}
-                  onToggleSave={profile ? toggleSaveSponsor : undefined}
-                  showContact={events.length > 0}
-                  onContact={(e, s) => startConversation(e, s, events[0])}
-                  animationDelay={0.05 * i}
-                />
-              );
-            })}
+            {[...filteredSponsors]
+              .sort((a, b) => {
+                if (sortBy === "match") return getAvgMatchForSponsor(b) - getAvgMatchForSponsor(a);
+                if (sortBy === "budget") return (b.budget_max ?? 0) - (a.budget_max ?? 0);
+                return a.name.localeCompare(b.name);
+              })
+              .map((sponsor, i) => {
+                const avgMatch = getAvgMatchForSponsor(sponsor);
+                return (
+                  <SponsorCard
+                    key={sponsor.id}
+                    sponsor={sponsor}
+                    avgMatch={avgMatch}
+                    showMatch={events.length > 0}
+                    isSaved={savedSponsorIds.has(sponsor.id)}
+                    onToggleSave={profile ? toggleSaveSponsor : undefined}
+                    showContact={events.length > 0}
+                    onContact={(e, s) => startConversation(e, s, events[0])}
+                    animationDelay={0.05 * i}
+                  />
+                );
+              })}
           </div>
         )}
       </div>
