@@ -6,7 +6,7 @@ import { SponsorCard } from "@/components/SponsorCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Building2, SlidersHorizontal } from "lucide-react";
+import { Search, Building2, SlidersHorizontal, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -49,6 +49,7 @@ export default function SponsorsPage() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [budgetFilter, setBudgetFilter] = useState("");
   const [verifiedFilter, setVerifiedFilter] = useState("");
+  const [sortBy, setSortBy] = useState<"match" | "name" | "budget">("match");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -198,6 +199,17 @@ export default function SponsorsPage() {
             <SlidersHorizontal className="h-4 w-4" />
             Filtros
           </Button>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as "match" | "name" | "budget")}>
+            <SelectTrigger className="w-[170px] shrink-0">
+              <ArrowUpDown className="h-4 w-4 mr-1.5 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="match">Mayor match</SelectItem>
+              <SelectItem value="name">Nombre A-Z</SelectItem>
+              <SelectItem value="budget">Mayor presupuesto</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Industry pills */}
@@ -279,22 +291,28 @@ export default function SponsorsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredSponsors.map((sponsor, i) => {
-              const avgMatch = getAvgMatchForSponsor(sponsor);
-              return (
-                <SponsorCard
-                  key={sponsor.id}
-                  sponsor={sponsor}
-                  avgMatch={avgMatch}
-                  showMatch={events.length > 0}
-                  isSaved={savedSponsorIds.has(sponsor.id)}
-                  onToggleSave={profile ? toggleSaveSponsor : undefined}
-                  showContact={events.length > 0}
-                  onContact={(e, s) => startConversation(e, s, events[0])}
-                  animationDelay={0.05 * i}
-                />
-              );
-            })}
+            {[...filteredSponsors]
+              .sort((a, b) => {
+                if (sortBy === "match") return getAvgMatchForSponsor(b) - getAvgMatchForSponsor(a);
+                if (sortBy === "budget") return (b.budget_max ?? 0) - (a.budget_max ?? 0);
+                return a.name.localeCompare(b.name);
+              })
+              .map((sponsor, i) => {
+                const avgMatch = getAvgMatchForSponsor(sponsor);
+                return (
+                  <SponsorCard
+                    key={sponsor.id}
+                    sponsor={sponsor}
+                    avgMatch={avgMatch}
+                    showMatch={events.length > 0}
+                    isSaved={savedSponsorIds.has(sponsor.id)}
+                    onToggleSave={profile ? toggleSaveSponsor : undefined}
+                    showContact={events.length > 0}
+                    onContact={(e, s) => startConversation(e, s, events[0])}
+                    animationDelay={0.05 * i}
+                  />
+                );
+              })}
           </div>
         )}
       </div>
