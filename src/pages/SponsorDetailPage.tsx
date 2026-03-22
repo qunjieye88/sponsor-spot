@@ -126,7 +126,7 @@ export default function SponsorDetailPage() {
     ? Math.round(events.map((e) => calculateMatchScore(e, sponsor)).reduce((a, b) => a + b, 0) / events.length)
     : 0;
 
-  const matchBreakdown = bestEvent ? getMatchBreakdown(bestEvent.event, sponsor) : null;
+  const matchBreakdown = bestEvent ? getMatchBreakdown(bestEvent.event, sponsor, "organizer") : null;
 
   const details = [
     { label: "Industria", value: sponsor.industry, icon: Briefcase },
