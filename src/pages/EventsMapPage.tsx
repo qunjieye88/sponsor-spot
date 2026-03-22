@@ -1,12 +1,10 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { createRoot } from "react-dom/client";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarDays, MapPin, List, Map as MapIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Navbar } from "@/components/Navbar";
+import { CalendarDays, MapPin, ZoomIn, ZoomOut, Locate, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Event, Profile } from "@/lib/supabase-helpers";
@@ -14,329 +12,308 @@ import { calculateMatchScore } from "@/lib/supabase-helpers";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-const CATEGORY_OPTIONS = [
-  { label: "Todos los tipos", value: "all" },
-  { label: "Festival Musical", value: "Festival Musical" },
-  { label: "Conferencia Tech", value: "Conferencia Tech" },
-  { label: "Evento Deportivo", value: "Evento Deportivo" },
-  { label: "Gala Benéfica", value: "Gala Benéfica" },
-  { label: "Expo & Conferencia", value: "Expo & Conferencia" },
-  { label: "Festival Gastronómico", value: "Festival Gastronómico" },
-  { label: "Conferencia", value: "Conferencia" },
-];
-
 type EventWithCoords = Event & { latitude: number; longitude: number };
 
-type PopupCardProps = {
+/* ── Pin icon ── */
+function createPin(isActive: boolean) {
+  const size = isActive ? 36 : 28;
+  return L.divIcon({
+    className: "",
+    html: `
+      <div style="
+        width: ${size}px; height: ${size}px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 50% 50% 50% 0;
+        background: hsl(var(--primary));
+        transform: rotate(-45deg);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        border: 3px solid white;
+        transition: all 0.2s ease;
+      ">
+        <svg style="transform:rotate(45deg)" width="${size * 0.45}" height="${size * 0.45}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+      </div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor: [0, -size + 4],
+  });
+}
+
+/* ── Popup card rendered into DOM for Leaflet ── */
+function PopupContent({
+  event,
+  matchScore,
+  onOpen,
+}: {
   event: EventWithCoords;
   matchScore: number | null;
   onOpen: () => void;
-};
-
-function PopupCard({ event, matchScore, onOpen }: PopupCardProps) {
+}) {
   return (
-    <button
-      type="button"
+    <div
       onClick={onOpen}
-      className="w-[240px] text-left"
+      style={{ cursor: "pointer", width: 260, fontFamily: "inherit" }}
     >
-      {event.media && event.media.length > 0 && (
+      {event.media && event.media.length > 0 ? (
         <img
           src={event.media[0]}
           alt={event.title}
-          className="mb-2 h-32 w-full rounded-lg object-cover"
+          style={{
+            width: "100%",
+            height: 140,
+            objectFit: "cover",
+            borderRadius: 10,
+            marginBottom: 10,
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            height: 140,
+            borderRadius: 10,
+            marginBottom: 10,
+            background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.6))",
+          }}
         />
       )}
-      <h3 className="mb-1 text-sm font-bold leading-tight text-foreground">{event.title}</h3>
-      <div className="mb-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+      <div style={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, marginBottom: 6, color: "#111" }}>
+        {event.title}
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, fontSize: 12, color: "#666", marginBottom: 8 }}>
         {event.date && (
-          <span className="flex items-center gap-1">
-            <CalendarDays className="h-3 w-3" />
-            {format(new Date(event.date), "d MMM yyyy", { locale: es })}
+          <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+            📅 {format(new Date(event.date), "d MMM yyyy", { locale: es })}
           </span>
         )}
         {event.location && (
-          <span className="flex items-center gap-1">
-            <MapPin className="h-3 w-3" />
-            {event.location}
+          <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+            📍 {event.location}
           </span>
         )}
       </div>
       {matchScore !== null && (
-        <span className="inline-block rounded bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+        <span
+          style={{
+            display: "inline-block",
+            padding: "3px 8px",
+            borderRadius: 6,
+            fontSize: 11,
+            fontWeight: 700,
+            background: "hsl(var(--primary) / 0.12)",
+            color: "hsl(var(--primary))",
+          }}
+        >
           {matchScore}% Match
         </span>
       )}
-      <p className="mt-2 text-xs font-medium text-primary">Ver detalle →</p>
-    </button>
+      <div
+        style={{
+          marginTop: 8,
+          fontSize: 12,
+          fontWeight: 600,
+          color: "hsl(var(--primary))",
+        }}
+      >
+        Ver detalle →
+      </div>
+    </div>
   );
 }
 
-function createMarkerIcon(isActive: boolean) {
-  return L.divIcon({
-    className: "",
-    html: `<div style="width:${isActive ? 20 : 16}px;height:${isActive ? 20 : 16}px;border-radius:9999px;background:hsl(var(--primary));border:3px solid white;box-shadow:0 10px 20px rgba(0,0,0,.2);"></div>`,
-    iconSize: [isActive ? 20 : 16, isActive ? 20 : 16],
-    iconAnchor: [isActive ? 10 : 8, isActive ? 10 : 8],
-    popupAnchor: [0, -(isActive ? 10 : 8)],
-  });
-}
-
+/* ── Map page ── */
 export default function EventsMapPage() {
   const { profile } = useAuthContext();
   const navigate = useNavigate();
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerLayerRef = useRef<L.LayerGroup | null>(null);
-  const popupRootsRef = useRef<Array<{ root: ReturnType<typeof createRoot>; container: HTMLElement }>>([]);
+  const popupRootsRef = useRef<Array<{ root: ReturnType<typeof createRoot>; el: HTMLElement }>>([]);
+  const loadedIdsRef = useRef<Set<string>>(new Set());
+  const [eventCount, setEventCount] = useState(0);
+  const [mapReady, setMapReady] = useState(false);
 
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [locationFilter, setLocationFilter] = useState("all");
-  const [locations, setLocations] = useState<string[]>([]);
-  const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
-  const [showList, setShowList] = useState(true);
+  const openEvent = useCallback((id: string) => navigate(`/events/${id}`), [navigate]);
 
-  useEffect(() => {
-    if (!profile) return;
+  /* ── Fetch events in visible bounds ── */
+  const fetchVisibleEvents = useCallback(async () => {
+    const map = mapRef.current;
+    const layer = markerLayerRef.current;
+    if (!map || !layer || !profile) return;
 
-    const fetchEvents = async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from("events")
-        .select("*")
-        .eq("published", true)
-        .order("date", { ascending: true });
+    const bounds = map.getBounds();
+    const sw = bounds.getSouthWest();
+    const ne = bounds.getNorthEast();
 
-      setEvents(data || []);
-      const locs = [...new Set((data || []).map((e) => e.location).filter(Boolean))] as string[];
-      setLocations(locs);
-      setLoading(false);
-    };
+    const { data } = await supabase
+      .from("events")
+      .select("*")
+      .eq("published", true)
+      .gte("latitude", sw.lat)
+      .lte("latitude", ne.lat)
+      .gte("longitude", sw.lng)
+      .lte("longitude", ne.lng)
+      .not("latitude", "is", null)
+      .not("longitude", "is", null)
+      .limit(200);
 
-    fetchEvents();
-  }, [profile]);
+    if (!data) return;
 
-  const filteredEvents = useMemo(() => {
-    return events.filter((event) => {
-      if (categoryFilter !== "all" && event.type !== categoryFilter) return false;
-      if (locationFilter !== "all" && event.location !== locationFilter) return false;
-      return true;
+    const newEvents = data.filter((e) => !loadedIdsRef.current.has(e.id)) as EventWithCoords[];
+
+    newEvents.forEach((event) => {
+      loadedIdsRef.current.add(event.id);
+
+      const matchScore = profile?.role === "sponsor" ? calculateMatchScore(event, profile) : null;
+      const marker = L.marker([event.latitude, event.longitude], {
+        icon: createPin(false),
+      });
+
+      marker.on("mouseover", () => marker.setIcon(createPin(true)));
+      marker.on("mouseout", () => marker.setIcon(createPin(false)));
+
+      // Popup
+      const container = document.createElement("div");
+      const root = createRoot(container);
+      root.render(
+        <PopupContent event={event} matchScore={matchScore} onOpen={() => openEvent(event.id)} />
+      );
+      popupRootsRef.current.push({ root, el: container });
+      marker.bindPopup(container, {
+        maxWidth: 300,
+        minWidth: 260,
+        closeButton: true,
+        className: "map-event-popup",
+      });
+
+      marker.addTo(layer);
     });
-  }, [events, categoryFilter, locationFilter]);
 
-  const eventsWithCoords = useMemo(() => {
-    return filteredEvents.filter(
-      (event): event is EventWithCoords =>
-        typeof (event as Event & { latitude?: number | null }).latitude === "number" &&
-        typeof (event as Event & { longitude?: number | null }).longitude === "number"
-    );
-  }, [filteredEvents]);
+    setEventCount(loadedIdsRef.current.size);
+  }, [profile, openEvent]);
 
-  const openEvent = useCallback((eventId: string) => {
-    navigate(`/events/${eventId}`);
-  }, [navigate]);
-
+  /* ── Init map ── */
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
+    if (!mapElRef.current || mapRef.current) return;
 
-    const map = L.map(mapContainerRef.current, {
-      zoomControl: true,
-      attributionControl: true,
-    }).setView([40.4168, -3.7038], 5);
+    const map = L.map(mapElRef.current, {
+      zoomControl: false,
+      attributionControl: false,
+    }).setView([-15, -60], 4); // Centered on LATAM
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      maxZoom: 19,
     }).addTo(map);
+
+    L.control.attribution({ position: "bottomleft" }).addTo(map);
 
     markerLayerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
+    setMapReady(true);
 
     return () => {
-      popupRootsRef.current.forEach(({ root, container }) => {
+      popupRootsRef.current.forEach(({ root, el }) => {
         root.unmount();
-        container.remove();
+        el.remove();
       });
       popupRootsRef.current = [];
-      markerLayerRef.current?.clearLayers();
+      loadedIdsRef.current.clear();
+      layer?.clearLayers();
       map.remove();
       mapRef.current = null;
       markerLayerRef.current = null;
     };
   }, []);
 
+  /* ── Bind move/zoom listeners ── */
   useEffect(() => {
     const map = mapRef.current;
-    const markerLayer = markerLayerRef.current;
-    if (!map || !markerLayer) return;
+    if (!map || !mapReady) return;
 
-    popupRootsRef.current.forEach(({ root, container }) => {
-      root.unmount();
-      container.remove();
-    });
-    popupRootsRef.current = [];
-    markerLayer.clearLayers();
+    // Initial load
+    fetchVisibleEvents();
 
-    if (eventsWithCoords.length === 0) {
-      map.setView([40.4168, -3.7038], 5);
-      return;
-    }
+    const onMoveEnd = () => fetchVisibleEvents();
+    map.on("moveend", onMoveEnd);
 
-    const bounds = L.latLngBounds(eventsWithCoords.map((event) => [event.latitude, event.longitude]));
+    return () => {
+      map.off("moveend", onMoveEnd);
+    };
+  }, [mapReady, fetchVisibleEvents]);
 
-    eventsWithCoords.forEach((event) => {
-      const matchScore = profile?.role === "sponsor" ? calculateMatchScore(event, profile) : null;
-      const marker = L.marker([event.latitude, event.longitude], {
-        icon: createMarkerIcon(hoveredEventId === event.id),
-      });
-
-      marker.on("mouseover", () => setHoveredEventId(event.id));
-      marker.on("mouseout", () => setHoveredEventId((current) => (current === event.id ? null : current)));
-      marker.on("click", () => setHoveredEventId(event.id));
-
-      const popupContainer = document.createElement("div");
-      const root = createRoot(popupContainer);
-      root.render(
-        <PopupCard
-          event={event}
-          matchScore={matchScore}
-          onOpen={() => openEvent(event.id)}
-        />
-      );
-      popupRootsRef.current.push({ root, container: popupContainer });
-      marker.bindPopup(popupContainer, { maxWidth: 280, minWidth: 240 });
-      marker.addTo(markerLayer);
-    });
-
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
-  }, [eventsWithCoords, hoveredEventId, openEvent, profile]);
-
-  useEffect(() => {
-    mapRef.current?.invalidateSize();
-  }, [showList]);
+  /* ── Custom zoom controls ── */
+  const handleZoomIn = () => mapRef.current?.zoomIn();
+  const handleZoomOut = () => mapRef.current?.zoomOut();
+  const handleLocateMe = () => {
+    mapRef.current?.locate({ setView: true, maxZoom: 12 });
+  };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold">
-              <MapIcon className="h-6 w-6 text-primary" />
-              Mapa de Eventos
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {eventsWithCoords.length} evento{eventsWithCoords.length !== 1 ? "s" : ""} con ubicación
-            </p>
-          </div>
+    <div className="flex h-screen flex-col bg-background">
+      <Navbar />
+
+      {/* Map takes all remaining space */}
+      <div className="relative flex-1">
+        <div ref={mapElRef} className="absolute inset-0" />
+
+        {/* Top-left: Back + counter badge */}
+        <div className="absolute left-4 top-4 z-[1000] flex items-center gap-2">
           <button
-            onClick={() => setShowList((value) => !value)}
-            className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted md:hidden"
+            onClick={() => navigate("/dashboard")}
+            className="flex items-center gap-1.5 rounded-xl bg-card/95 px-3 py-2 text-sm font-medium shadow-lg backdrop-blur-sm transition-all hover:bg-card hover:shadow-xl"
           >
-            {showList ? <MapIcon className="h-4 w-4" /> : <List className="h-4 w-4" />}
-            {showList ? "Ver mapa" : "Ver lista"}
+            <ArrowLeft className="h-4 w-4" />
+            Volver
+          </button>
+          <div className="rounded-xl bg-card/95 px-3 py-2 text-sm font-medium shadow-lg backdrop-blur-sm">
+            <span className="font-bold text-primary">{eventCount}</span>{" "}
+            <span className="text-muted-foreground">evento{eventCount !== 1 ? "s" : ""}</span>
+          </div>
+        </div>
+
+        {/* Right: Zoom controls */}
+        <div className="absolute right-4 top-4 z-[1000] flex flex-col gap-1.5">
+          <button
+            onClick={handleZoomIn}
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-card/95 shadow-lg backdrop-blur-sm transition-all hover:bg-card hover:shadow-xl"
+          >
+            <ZoomIn className="h-5 w-5" />
+          </button>
+          <button
+            onClick={handleZoomOut}
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-card/95 shadow-lg backdrop-blur-sm transition-all hover:bg-card hover:shadow-xl"
+          >
+            <ZoomOut className="h-5 w-5" />
+          </button>
+          <button
+            onClick={handleLocateMe}
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-card/95 shadow-lg backdrop-blur-sm transition-all hover:bg-card hover:shadow-xl"
+          >
+            <Locate className="h-5 w-5" />
           </button>
         </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="h-9 min-w-[150px] w-auto rounded-lg border-border bg-background text-sm">
-              <SelectValue placeholder="Tipo de evento" />
-            </SelectTrigger>
-            <SelectContent>
-              {CATEGORY_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={locationFilter} onValueChange={setLocationFilter}>
-            <SelectTrigger className="h-9 min-w-[130px] w-auto rounded-lg border-border bg-background text-sm">
-              <SelectValue placeholder="Ciudad" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas las ciudades</SelectItem>
-              {locations.map((location) => (
-                <SelectItem key={location} value={location}>{location}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {loading ? (
-          <div className="h-[600px] animate-pulse rounded-2xl bg-card" />
-        ) : (
-          <div className="flex min-h-[500px] gap-4 h-[calc(100vh-220px)]">
-            <div className={cn("flex-1 overflow-hidden rounded-2xl shadow-card", !showList ? "block" : "hidden md:block")}>
-              <div ref={mapContainerRef} className="h-full w-full" />
-            </div>
-
-            <div className={cn("w-full flex-shrink-0 space-y-3 overflow-y-auto pr-1 md:w-[360px] md:min-w-[320px]", showList ? "block" : "hidden md:block")}>
-              {filteredEvents.length === 0 ? (
-                <div className="py-16 text-center">
-                  <MapPin className="mx-auto mb-2 h-10 w-10 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">No hay eventos con los filtros seleccionados</p>
-                </div>
-              ) : (
-                filteredEvents.map((event) => {
-                  const hasCoords = typeof (event as Event & { latitude?: number | null }).latitude === "number" && typeof (event as Event & { longitude?: number | null }).longitude === "number";
-                  const matchScore = profile?.role === "sponsor" ? calculateMatchScore(event, profile) : null;
-
-                  return (
-                    <div
-                      key={event.id}
-                      className={cn(
-                        "cursor-pointer rounded-xl border-2 bg-card p-3 shadow-card transition-all duration-200 hover:shadow-card-hover",
-                        hoveredEventId === event.id ? "border-primary shadow-md" : "border-transparent hover:border-border"
-                      )}
-                      onClick={() => openEvent(event.id)}
-                      onMouseEnter={() => setHoveredEventId(event.id)}
-                      onMouseLeave={() => setHoveredEventId(null)}
-                    >
-                      <div className="flex gap-3">
-                        <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg">
-                          {event.media && event.media.length > 0 ? (
-                            <img src={event.media[0]} alt={event.title} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="h-full w-full gradient-primary opacity-70" />
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="line-clamp-2 text-sm font-semibold leading-tight text-foreground">{event.title}</h4>
-                          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-                            {event.date && (
-                              <span className="flex items-center gap-0.5">
-                                <CalendarDays className="h-3 w-3" />
-                                {format(new Date(event.date), "d MMM", { locale: es })}
-                              </span>
-                            )}
-                            {event.location && (
-                              <span className="flex items-center gap-0.5">
-                                <MapPin className="h-3 w-3" />
-                                <span className="line-clamp-1">{event.location}</span>
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-1.5 flex items-center gap-2">
-                            {matchScore !== null && (
-                              <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[11px] font-bold text-primary">
-                                {matchScore}%
-                              </span>
-                            )}
-                            {!hasCoords && (
-                              <span className="text-[11px] italic text-muted-foreground/60">Sin coordenadas</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        )}
       </div>
-    </DashboardLayout>
+
+      {/* Global popup styles */}
+      <style>{`
+        .map-event-popup .leaflet-popup-content-wrapper {
+          border-radius: 14px;
+          padding: 0;
+          overflow: hidden;
+          box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+        .map-event-popup .leaflet-popup-content {
+          margin: 12px;
+          line-height: 1.4;
+        }
+        .map-event-popup .leaflet-popup-tip {
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+      `}</style>
+    </div>
   );
 }
