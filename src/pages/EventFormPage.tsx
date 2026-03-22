@@ -53,6 +53,8 @@ export default function EventFormPage() {
             setSponsorshipMin(data.sponsorship_min?.toString() || "");
             setSponsorshipMax(data.sponsorship_max?.toString() || "");
             setPublished(data.published || false);
+            setLatitude((data as any).latitude?.toString() || "");
+            setLongitude((data as any).longitude?.toString() || "");
           }
         });
     }
