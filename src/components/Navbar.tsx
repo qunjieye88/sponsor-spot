@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   Bookmark,
+  Map,
 } from "lucide-react";
 import { useState } from "react";
 import { resolveAvatar } from "@/lib/avatar";
@@ -28,11 +29,13 @@ export function Navbar() {
     ? [
         { label: "Mis Eventos", href: "/dashboard", icon: CalendarDays },
         { label: "Buscar Sponsors", href: "/sponsors", icon: Search },
+        { label: "Mapa", href: "/map", icon: Map },
         { label: "Guardados", href: "/saved", icon: Bookmark },
         { label: "Mensajes", href: "/messages", icon: MessageSquare },
       ]
     : [
         { label: "Explorar Eventos", href: "/dashboard", icon: Search },
+        { label: "Mapa", href: "/map", icon: Map },
         { label: "Guardados", href: "/saved", icon: Bookmark },
         { label: "Mensajes", href: "/messages", icon: MessageSquare },
       ];

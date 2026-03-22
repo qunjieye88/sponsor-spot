@@ -30,6 +30,8 @@ export default function EventFormPage() {
   const [sponsorshipMin, setSponsorshipMin] = useState("");
   const [sponsorshipMax, setSponsorshipMax] = useState("");
   const [published, setPublished] = useState(false);
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
 
   useEffect(() => {
     if (isEditing && id) {
@@ -51,6 +53,8 @@ export default function EventFormPage() {
             setSponsorshipMin(data.sponsorship_min?.toString() || "");
             setSponsorshipMax(data.sponsorship_max?.toString() || "");
             setPublished(data.published || false);
+            setLatitude((data as any).latitude?.toString() || "");
+            setLongitude((data as any).longitude?.toString() || "");
           }
         });
     }
@@ -74,6 +78,8 @@ export default function EventFormPage() {
       sponsorship_min: parseInt(sponsorshipMin) || 0,
       sponsorship_max: parseInt(sponsorshipMax) || 0,
       published,
+      latitude: latitude ? parseFloat(latitude) : null,
+      longitude: longitude ? parseFloat(longitude) : null,
     };
 
     if (isEditing && id) {
@@ -148,6 +154,17 @@ export default function EventFormPage() {
               <div>
                 <Label>Ubicación</Label>
                 <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Ciudad, País" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Latitud</Label>
+                <Input type="number" step="any" value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="40.4168" />
+              </div>
+              <div>
+                <Label>Longitud</Label>
+                <Input type="number" step="any" value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="-3.7038" />
               </div>
             </div>
 
