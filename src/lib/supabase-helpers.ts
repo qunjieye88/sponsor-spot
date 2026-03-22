@@ -105,8 +105,9 @@ export interface MatchBreakdownItem {
   reason: string;
 }
 
-export function getMatchBreakdown(event: Event, sponsor: Profile): MatchBreakdownItem[] {
+export function getMatchBreakdown(event: Event, sponsor: Profile, perspective: "sponsor" | "organizer" = "sponsor"): MatchBreakdownItem[] {
   const items: MatchBreakdownItem[] = [];
+  const isOrganizer = perspective === "organizer";
 
   // Sector
   const preferredSectors = (sponsor as any).preferred_sectors as string[] | null;
@@ -116,8 +117,12 @@ export function getMatchBreakdown(event: Event, sponsor: Profile): MatchBreakdow
       label: "Sector",
       compatible: match,
       reason: match
-        ? `El sector "${event.sector}" coincide con tus preferencias: ${preferredSectors.join(", ")}`
-        : `El sector del evento es "${event.sector}" pero tus preferencias son: ${preferredSectors.join(", ")}`,
+        ? isOrganizer
+          ? `Tu evento es del sector "${event.sector}" y coincide con las preferencias del sponsor: ${preferredSectors.join(", ")}`
+          : `El sector "${event.sector}" coincide con tus preferencias: ${preferredSectors.join(", ")}`
+        : isOrganizer
+          ? `Tu evento es del sector "${event.sector}" pero las preferencias del sponsor son: ${preferredSectors.join(", ")}`
+          : `El sector del evento es "${event.sector}" pero tus preferencias son: ${preferredSectors.join(", ")}`,
     });
   } else if (event.sector && sponsor.industry) {
     const match = event.sector.toLowerCase() === sponsor.industry.toLowerCase();
@@ -125,14 +130,22 @@ export function getMatchBreakdown(event: Event, sponsor: Profile): MatchBreakdow
       label: "Sector",
       compatible: match,
       reason: match
-        ? `Tu industria "${sponsor.industry}" coincide con el sector del evento`
-        : `El sector del evento es "${event.sector}" pero tu industria es "${sponsor.industry}"`,
+        ? isOrganizer
+          ? `Tu evento es del sector "${event.sector}" y coincide con la industria del sponsor "${sponsor.industry}"`
+          : `Tu industria "${sponsor.industry}" coincide con el sector del evento`
+        : isOrganizer
+          ? `Tu evento es del sector "${event.sector}" pero la industria del sponsor es "${sponsor.industry}"`
+          : `El sector del evento es "${event.sector}" pero tu industria es "${sponsor.industry}"`,
     });
   } else {
     items.push({
       label: "Sector",
       compatible: false,
-      reason: !event.sector ? "El evento no tiene sector definido" : "No tienes sectores preferidos configurados en tu perfil",
+      reason: !event.sector
+        ? "El evento no tiene sector definido"
+        : isOrganizer
+          ? "El sponsor no tiene sectores preferidos configurados"
+          : "No tienes sectores preferidos configurados en tu perfil",
     });
   }
 
@@ -148,14 +161,22 @@ export function getMatchBreakdown(event: Event, sponsor: Profile): MatchBreakdow
       label: "Tipo de evento",
       compatible: match,
       reason: match
-        ? `El tipo "${event.type}" coincide con tus preferencias: ${preferredTypes.join(", ")}`
-        : `El tipo del evento es "${event.type}" pero tus preferencias son: ${preferredTypes.join(", ")}`,
+        ? isOrganizer
+          ? `Tu evento es de tipo "${event.type}" y coincide con las preferencias del sponsor: ${preferredTypes.join(", ")}`
+          : `El tipo "${event.type}" coincide con tus preferencias: ${preferredTypes.join(", ")}`
+        : isOrganizer
+          ? `Tu evento es de tipo "${event.type}" pero las preferencias del sponsor son: ${preferredTypes.join(", ")}`
+          : `El tipo del evento es "${event.type}" pero tus preferencias son: ${preferredTypes.join(", ")}`,
     });
   } else {
     items.push({
       label: "Tipo de evento",
       compatible: false,
-      reason: !event.type ? "El evento no tiene tipo definido" : "No tienes tipos de evento preferidos configurados",
+      reason: !event.type
+        ? "El evento no tiene tipo definido"
+        : isOrganizer
+          ? "El sponsor no tiene tipos de evento preferidos configurados"
+          : "No tienes tipos de evento preferidos configurados",
     });
   }
 
@@ -171,14 +192,22 @@ export function getMatchBreakdown(event: Event, sponsor: Profile): MatchBreakdow
       label: "Audiencia",
       compatible: match,
       reason: match
-        ? `La audiencia "${event.audience}" encaja con tus preferencias: ${preferredAudiences.join(", ")}`
-        : `La audiencia del evento es "${event.audience}" pero tus preferencias son: ${preferredAudiences.join(", ")}`,
+        ? isOrganizer
+          ? `Tu evento tiene audiencia "${event.audience}" y encaja con las preferencias del sponsor: ${preferredAudiences.join(", ")}`
+          : `La audiencia "${event.audience}" encaja con tus preferencias: ${preferredAudiences.join(", ")}`
+        : isOrganizer
+          ? `Tu evento tiene audiencia "${event.audience}" pero las preferencias del sponsor son: ${preferredAudiences.join(", ")}`
+          : `La audiencia del evento es "${event.audience}" pero tus preferencias son: ${preferredAudiences.join(", ")}`,
     });
   } else {
     items.push({
       label: "Audiencia",
       compatible: false,
-      reason: !event.audience ? "El evento no tiene audiencia definida" : "No tienes audiencias preferidas configuradas",
+      reason: !event.audience
+        ? "El evento no tiene audiencia definida"
+        : isOrganizer
+          ? "El sponsor no tiene audiencias preferidas configuradas"
+          : "No tienes audiencias preferidas configuradas",
     });
   }
 
@@ -197,16 +226,24 @@ export function getMatchBreakdown(event: Event, sponsor: Profile): MatchBreakdow
       label: "Presupuesto",
       compatible,
       reason: compatible
-        ? `Tu rango ($${sponsor.budget_min.toLocaleString()} - $${sponsor.budget_max.toLocaleString()}) se solapa con el del evento ($${event.sponsorship_min.toLocaleString()} - $${event.sponsorship_max.toLocaleString()})`
-        : `Tu rango ($${sponsor.budget_min.toLocaleString()} - $${sponsor.budget_max.toLocaleString()}) no se solapa con el del evento ($${event.sponsorship_min.toLocaleString()} - $${event.sponsorship_max.toLocaleString()})`,
+        ? isOrganizer
+          ? `Tu rango de patrocinio ($${event.sponsorship_min.toLocaleString()} - $${event.sponsorship_max.toLocaleString()}) se solapa con el presupuesto del sponsor ($${sponsor.budget_min.toLocaleString()} - $${sponsor.budget_max.toLocaleString()})`
+          : `Tu rango ($${sponsor.budget_min.toLocaleString()} - $${sponsor.budget_max.toLocaleString()}) se solapa con el del evento ($${event.sponsorship_min.toLocaleString()} - $${event.sponsorship_max.toLocaleString()})`
+        : isOrganizer
+          ? `Tu rango de patrocinio ($${event.sponsorship_min.toLocaleString()} - $${event.sponsorship_max.toLocaleString()}) no se solapa con el presupuesto del sponsor ($${sponsor.budget_min.toLocaleString()} - $${sponsor.budget_max.toLocaleString()})`
+          : `Tu rango ($${sponsor.budget_min.toLocaleString()} - $${sponsor.budget_max.toLocaleString()}) no se solapa con el del evento ($${event.sponsorship_min.toLocaleString()} - $${event.sponsorship_max.toLocaleString()})`,
     });
   } else {
     items.push({
       label: "Presupuesto",
       compatible: false,
-      reason: (sponsor.budget_min == null || sponsor.budget_max == null)
-        ? "No tienes rango de presupuesto configurado en tu perfil"
-        : "El evento no tiene rango de patrocinio definido",
+      reason: isOrganizer
+        ? (event.sponsorship_min == null || event.sponsorship_max == null)
+          ? "Tu evento no tiene rango de patrocinio definido"
+          : "El sponsor no tiene rango de presupuesto configurado"
+        : (sponsor.budget_min == null || sponsor.budget_max == null)
+          ? "No tienes rango de presupuesto configurado en tu perfil"
+          : "El evento no tiene rango de patrocinio definido",
     });
   }
 
