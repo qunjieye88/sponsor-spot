@@ -30,6 +30,8 @@ export default function EventFormPage() {
   const [sponsorshipMin, setSponsorshipMin] = useState("");
   const [sponsorshipMax, setSponsorshipMax] = useState("");
   const [published, setPublished] = useState(false);
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
 
   useEffect(() => {
     if (isEditing && id) {
