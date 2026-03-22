@@ -16,6 +16,13 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const toggleMode = () => {
+    setIsLogin((prev) => !prev);
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -43,7 +50,7 @@ export default function AuthPage() {
         navigate(profile ? "/dashboard" : "/onboarding", { replace: true });
       }
     } else {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: window.location.origin },
@@ -53,8 +60,13 @@ export default function AuthPage() {
         setLoading(false);
         return;
       }
-      toast.success("Cuenta creada. Continúa con el onboarding.");
-      navigate("/onboarding", { replace: true });
+      // If email confirmation is required, the session will be null
+      if (data.session) {
+        toast.success("Cuenta creada. Continúa con el onboarding.");
+        navigate("/onboarding", { replace: true });
+      } else {
+        toast.success("Te enviamos un email de confirmación. Revisa tu bandeja de entrada.");
+      }
     }
     setLoading(false);
   };
@@ -161,7 +173,7 @@ export default function AuthPage() {
 
           <div className="mt-6 text-center">
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={toggleMode}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               {isLogin ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Inicia sesión"}
