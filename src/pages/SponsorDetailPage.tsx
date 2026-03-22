@@ -346,13 +346,13 @@ export default function SponsorDetailPage() {
                     const reqStatus = existingRequests[event.id];
                     const isSending = sendingEvent === event.id;
                     const isLocked = !!lockedEvents[event.id];
-                    const isDisabled = hasConv || !!reqStatus || isSending || isLocked;
+                    const isDisabled = (!hasConv && (!!reqStatus || isSending || isLocked));
                     const score = calculateMatchScore(event, sponsor);
 
                     let statusLabel = "";
                     let statusIcon = <MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />;
                     if (hasConv) {
-                      statusLabel = "Contactado";
+                      statusLabel = "Ir al chat";
                       statusIcon = <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />;
                     } else if (reqStatus) {
                       statusLabel = reqStatus === "pending" ? "Pendiente" : reqStatus === "accepted" ? "Aceptado" : "Rechazado";
@@ -366,16 +366,18 @@ export default function SponsorDetailPage() {
                         key={event.id}
                         disabled={isDisabled}
                         className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-colors text-sm ${
-                          isDisabled
-                            ? "border-border bg-muted/30 text-muted-foreground cursor-default"
-                            : "border-border bg-card hover:bg-accent/5 hover:border-primary/30"
+                          hasConv
+                            ? "border-primary/30 bg-primary/5 hover:bg-primary/10 cursor-pointer"
+                            : isDisabled
+                              ? "border-border bg-muted/30 text-muted-foreground cursor-default"
+                              : "border-border bg-card hover:bg-accent/5 hover:border-primary/30"
                         }`}
-                        onClick={() => startConversation(event)}
+                        onClick={() => hasConv ? navigate(`/messages?conversation=${existingConvs[event.id]}`) : startConversation(event)}
                       >
                         {statusIcon}
                         <span className="truncate text-left flex-1">{event.title}</span>
                         {statusLabel && (
-                          <span className="text-xs text-primary font-medium whitespace-nowrap">{statusLabel}</span>
+                          <span className={`text-xs font-medium whitespace-nowrap ${hasConv ? "text-primary" : "text-primary"}`}>{statusLabel}</span>
                         )}
                         <span className={`text-xs font-bold tabular-nums ${score >= 70 ? "text-emerald-500" : "text-muted-foreground"}`}>
                           {score}%
