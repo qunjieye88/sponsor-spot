@@ -199,6 +199,17 @@ export default function SponsorsPage() {
             <SlidersHorizontal className="h-4 w-4" />
             Filtros
           </Button>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as "match" | "name" | "budget")}>
+            <SelectTrigger className="w-[170px] shrink-0">
+              <ArrowUpDown className="h-4 w-4 mr-1.5 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="match">Mayor match</SelectItem>
+              <SelectItem value="name">Nombre A-Z</SelectItem>
+              <SelectItem value="budget">Mayor presupuesto</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Industry pills */}
