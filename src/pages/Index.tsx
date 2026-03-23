@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CalendarDays, Building2, Zap, MessageSquare, BarChart3, Shield } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
+import isotipoSrc from "@/assets/isotipo-sponsorly.png";
+import logoSrc from "@/assets/logo-sponsorly.jpg";
 
 export default function Index() {
   return (

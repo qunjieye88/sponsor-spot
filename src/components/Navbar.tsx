@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { resolveAvatar } from "@/lib/avatar";
+import isotipoSrc from "@/assets/isotipo-sponsorly.png";
+import logoSrc from "@/assets/logo-sponsorly.jpg";
 
 export function Navbar() {
   const { profile, signOut } = useAuthContext();
