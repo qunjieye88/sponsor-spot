@@ -76,6 +76,10 @@
 }
 
 @layer utilities {
+  .isotipo-primary {
+    filter: invert(38%) sepia(90%) saturate(2000%) hue-rotate(345deg) brightness(95%) contrast(90%);
+  }
+
   .gradient-primary {
     background: var(--gradient-primary);
   }
