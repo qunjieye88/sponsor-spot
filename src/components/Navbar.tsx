@@ -14,8 +14,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { resolveAvatar } from "@/lib/avatar";
-import isotipoSrc from "@/assets/isotipo-sponsorly.png";
-import logoSrc from "@/assets/logo-sponsorly.jpg";
 
 export function Navbar() {
   const { profile, signOut } = useAuthContext();
@@ -45,10 +43,12 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border">
       <div className="container flex items-center justify-between h-14">
-          <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg">
-            <img src={isotipoSrc} alt="Sponsorly" className="h-8 w-8 object-contain" />
-            <img src={logoSrc} alt="Sponsorly" className="hidden sm:block h-5 object-contain dark:invert" />
-          </Link>
+        <Link to="/dashboard" className="flex items-center gap-2 font-bold text-lg">
+          <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">
+            <span className="text-white font-bold text-sm">Sy</span>
+          </div>
+          <span className="hidden sm:inline">Sponsorly</span>
+        </Link>
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1">

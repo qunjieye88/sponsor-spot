@@ -2,8 +2,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CalendarDays, Building2, Zap, MessageSquare, BarChart3, Shield } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
-import isotipoSrc from "@/assets/isotipo-sponsorly.png";
-import logoSrc from "@/assets/logo-sponsorly.jpg";
 
 export default function Index() {
   return (
@@ -11,9 +9,11 @@ export default function Index() {
       {/* Nav */}
       <header className="fixed top-0 w-full z-50 bg-card/80 backdrop-blur-lg border-b border-border">
         <div className="container flex items-center justify-between h-14">
-          <div className="flex items-center gap-2">
-            <img src={isotipoSrc} alt="Sponsorly" className="h-8 w-8 object-contain" />
-            <img src={logoSrc} alt="Sponsorly" className="h-5 object-contain dark:invert" />
+          <div className="flex items-center gap-2 font-bold text-lg">
+            <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">
+              <span className="text-white font-bold text-sm">Sy</span>
+            </div>
+            Sponsorly
           </div>
           <div className="flex items-center gap-2">
             <Link to="/auth">
@@ -141,8 +141,10 @@ export default function Index() {
       <footer className="py-8 border-t border-border">
           <div className="container flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <img src={isotipoSrc} alt="Sponsorly" className="h-6 w-6 object-contain" />
-            <img src={logoSrc} alt="Sponsorly" className="h-4 object-contain dark:invert" />
+            <div className="h-6 w-6 rounded-md gradient-primary flex items-center justify-center">
+              <span className="text-white text-xs font-bold">Sy</span>
+            </div>
+            Sponsorly
           </div>
           <p>© {new Date().getFullYear()} Todos los derechos reservados.</p>
         </div>
