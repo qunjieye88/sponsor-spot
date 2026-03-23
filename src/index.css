@@ -76,6 +76,10 @@
 }
 
 @layer utilities {
+  .isotipo-primary {
+    filter: brightness(0) saturate(100%) sepia(100%) hue-rotate(-10deg) saturate(600%) brightness(90%);
+  }
+
   .gradient-primary {
     background: var(--gradient-primary);
   }
