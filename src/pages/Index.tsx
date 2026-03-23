@@ -12,7 +12,7 @@ export default function Index() {
       <header className="fixed top-0 w-full z-50 bg-card/80 backdrop-blur-lg border-b border-border">
         <div className="container flex items-center justify-between h-14">
           <div className="flex items-center gap-2">
-            <img src={isotipoSrc} alt="Sponsorly" className="h-8 w-8 object-contain isotipo-primary" />
+            <img src={isotipoSrc} alt="Sponsorly" className="h-8 w-8 object-contain" />
             <img src={logoSrc} alt="Sponsorly" className="h-5 object-contain dark:invert" />
           </div>
           <div className="flex items-center gap-2">
