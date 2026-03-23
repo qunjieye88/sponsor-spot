@@ -11,11 +11,9 @@ export default function Index() {
       {/* Nav */}
       <header className="fixed top-0 w-full z-50 bg-card/80 backdrop-blur-lg border-b border-border">
         <div className="container flex items-center justify-between h-14">
-          <div className="flex items-center gap-2 font-bold text-lg">
-            <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-white font-bold text-sm">Sy</span>
-            </div>
-            Sponsorly
+          <div className="flex items-center gap-2">
+            <img src={isotipoSrc} alt="Sponsorly" className="h-8 w-8 object-contain isotipo-primary" />
+            <img src={logoSrc} alt="Sponsorly" className="h-5 object-contain dark:invert" />
           </div>
           <div className="flex items-center gap-2">
             <Link to="/auth">
