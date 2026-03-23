@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, CalendarDays, Building2, Zap, MessageSquare, BarChart3, Shield } from "lucide-react";
+import { ArrowRight, Users, Building2, Zap, MessageSquare, BarChart3, Shield } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
+import logoIso from "@/assets/logo-isotipo.png";
 
 export default function Index() {
   return (
@@ -10,8 +11,8 @@ export default function Index() {
       <header className="fixed top-0 w-full z-50 bg-card/80 backdrop-blur-lg border-b border-border">
         <div className="container flex items-center justify-between h-14">
           <div className="flex items-center gap-2 font-bold text-lg">
-            <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-white font-bold text-sm">Sy</span>
+            <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center overflow-hidden">
+              <img src={logoIso} alt="Sponsorly" className="h-5 w-5 object-contain brightness-0 invert" />
             </div>
             Sponsorly
           </div>
@@ -40,21 +41,16 @@ export default function Index() {
           <div className="max-w-2xl animate-slide-up">
             <p className="text-sm font-semibold text-primary uppercase tracking-widest mb-3">Conectar marcas, crear momentos.</p>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.08] tracking-tight">
-              Conecta tus eventos con los sponsors perfectos
+              El punto de encuentro entre eventos y marcas
             </h1>
             <p className="mt-5 text-lg text-muted-foreground max-w-lg">
-              El marketplace donde organizadores de eventos encuentran patrocinadores ideales.
+              ¿Organizas eventos? Encuentra sponsors ideales. ¿Eres una marca? Descubre eventos donde brillar.
               Match inteligente, comunicación directa, resultados reales.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link to="/auth?mode=signup">
                 <Button size="lg" className="gradient-primary text-white border-0 rounded-pill h-12 px-8 font-semibold">
                   Empezar gratis <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
-              <Link to="/auth?mode=signup">
-                <Button size="lg" variant="outline" className="rounded-pill h-12 px-8">
-                  Soy sponsor
                 </Button>
               </Link>
             </div>
@@ -73,14 +69,14 @@ export default function Index() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
             {
-              icon: CalendarDays,
-              title: "Publica eventos",
-              desc: "Crea y gestiona tus eventos con toda la información que sponsors necesitan ver.",
+              icon: Users,
+              title: "Perfiles verificados",
+              desc: "Organizadores y sponsors con perfiles completos para generar confianza desde el primer contacto.",
             },
             {
               icon: Building2,
-              title: "Descubre sponsors",
-              desc: "Busca por industria, presupuesto, tipo de activación y más.",
+              title: "Explora oportunidades",
+              desc: "Sponsors descubren eventos y organizadores encuentran marcas — todo en un solo lugar.",
             },
             {
               icon: Zap,
