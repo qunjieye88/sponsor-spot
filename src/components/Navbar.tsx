@@ -49,7 +49,6 @@ export function Navbar() {
             <img src={isotipoSrc} alt="Sponsorly" className="h-8 w-8 object-contain isotipo-primary" />
             <img src={logoSrc} alt="Sponsorly" className="hidden sm:block h-5 object-contain dark:invert" />
           </Link>
-        </Link>
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1">
