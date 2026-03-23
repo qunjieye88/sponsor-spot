@@ -141,7 +141,7 @@ export default function Index() {
       <footer className="py-8 border-t border-border">
           <div className="container flex items-center justify-between text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <img src={isotipoSrc} alt="Sponsorly" className="h-6 w-6 object-contain isotipo-primary" />
+            <img src={isotipoSrc} alt="Sponsorly" className="h-6 w-6 object-contain" />
             <img src={logoSrc} alt="Sponsorly" className="h-4 object-contain dark:invert" />
           </div>
           <p>© {new Date().getFullYear()} Todos los derechos reservados.</p>
